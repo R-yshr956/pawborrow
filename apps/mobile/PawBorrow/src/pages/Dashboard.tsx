@@ -25,10 +25,10 @@ import trainingCardPhoto from '../assets/images/dashboard/training-card.png';
 import './Dashboard.css';
 
 const categories = [
-  { label: 'Cat', photo: catPhoto },
-  { label: 'Dog', photo: dogPhoto },
-  { label: 'Rabbit', photo: rabbitPhoto },
-  { label: 'Guinea Pig', photo: guineaPigPhoto },
+  { id: 'cat', label: 'Cat', photo: catPhoto },
+  { id: 'dog', label: 'Dog', photo: dogPhoto },
+  { id: 'rabbit', label: 'Rabbit', photo: rabbitPhoto },
+  { id: 'guinea-pig', label: 'Guinea Pig', photo: guineaPigPhoto },
 ];
 
 export const Dashboard = () => {
@@ -72,7 +72,9 @@ export const Dashboard = () => {
             </div>
             <div className="dashboard-categories">
               {categories.map((cat) => (
-                <div className="dashboard-category" key={cat.label}>
+                <div className="dashboard-category" key={cat.id}
+                  onClick={() => navigate(`/breed-selection/${cat.id}`)}
+                  style={{ cursor: 'pointer' }}>
                   <img src={cat.photo} alt={cat.label} />
                   <span>{cat.label}</span>
                 </div>

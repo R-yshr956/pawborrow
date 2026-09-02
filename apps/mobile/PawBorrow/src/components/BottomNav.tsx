@@ -5,7 +5,7 @@ import './BottomNav.css';
 
 // Only these routes show the bottom nav — everything else (Notifications,
 // DoctorDetails, CategoryDetails, Training) matches the design and has none
-const VISIBLE_ON = ['/dashboard', '/service', '/shop'];
+const VISIBLE_ON = ['/dashboard', '/service', '/shop', '/history', '/profile'];
 
 const BottomNav = () => {
   const location = useLocation();
@@ -37,12 +37,12 @@ const BottomNav = () => {
         <IonIcon icon={cartOutline} />
       </button>
 
-      <button className="bottom-nav-item">
+      <button className="bottom-nav-item ${location.pathname === '/history' ? 'bottom-nav-item--active' : ''}" onClick={() => navigate('/history')}>
         <IonIcon icon={timeOutline} />
         <span>History</span>
       </button>
 
-      <button className="bottom-nav-item">
+      <button className="bottom-nav-item ${location.pathname === '/profile' ? 'bottom-nav-item--active' : ''}" onClick={() => navigate('/profile')}>
         <IonIcon icon={personOutline} />
         <span>Profile</span>
       </button>

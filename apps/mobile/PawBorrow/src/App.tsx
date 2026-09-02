@@ -64,6 +64,9 @@ import DoctorDetails from './pages/DoctorDetails';
 import CategoryDetails from './pages/CategoryDetails';
 import Shop from './pages/Shop';
 import Training from './pages/Training';
+import History from './pages/History';
+import Profile from './pages/Profile';
+import BreedSelection from './pages/BreedSelection';
 import BottomNav from './components/BottomNav';
 
 setupIonicReact();
@@ -107,6 +110,9 @@ const App: React.FC = () => {
         <Route path="/service/category/:categoryId" element={<CategoryDetails />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/training" element={<Training />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/breed-selection/:animalId" element={<BreedSelection />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </IonRouterOutlet>
       <BottomNav />

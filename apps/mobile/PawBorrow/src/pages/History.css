@@ -1,0 +1,60 @@
+.history-content {
+  --background: linear-gradient(180deg, #ffffff 0%, #fbf1eb 100%);
+}
+
+.history {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 24px);
+  padding-bottom: clamp(80px, 18vh, 100px);
+  box-sizing: border-box;
+}
+
+.history-title {
+  margin: clamp(20px, 6vh, 50px) 0 20px;
+  font-size: clamp(20px, 5.5vw, 24px);
+  font-weight: 700;
+  color: #000;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.history-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(22, 34, 51, 0.08);
+  padding: 14px;
+}
+
+.history-icon {
+  flex-shrink: 0;
+  background: #fdece0;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5821f;
+  font-size: 20px;
+}
+
+.history-item-title {
+  margin: 0 0 4px;
+  font-size: clamp(13px, 3.5vw, 15px);
+  font-weight: 600;
+  color: #000;
+}
+
+.history-item-date {
+  margin: 0;
+  font-size: 12px;
+  color: #9a9a9a;
+}
