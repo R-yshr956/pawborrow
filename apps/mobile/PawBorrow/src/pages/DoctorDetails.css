@@ -1,0 +1,204 @@
+.doctor-content {
+  --background: #ffffff;
+}
+
+.doctor-photo-wrap {
+  position: relative;
+  height: clamp(200px, 32vh, 260px);
+  background: linear-gradient(135deg, #f5787b 0%, #8f4648 100%);
+}
+
+.doctor-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 0 28px 28px;
+}
+
+.doctor-back {
+  position: absolute;
+  top: clamp(16px, 5vh, 24px);
+  left: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #000;
+  cursor: pointer;
+}
+
+.doctor-photo-title {
+  position: absolute;
+  top: clamp(20px, 5.5vh, 28px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.doctor-sheet {
+  width: min(100%, 480px);
+  margin: -24px auto 0;
+  background: #ffffff;
+  border-radius: 28px 28px 0 0;
+  padding: clamp(20px, 5vw, 28px) clamp(18px, 5vw, 24px) 100px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.doctor-label {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: #9a9a9a;
+}
+
+.doctor-name {
+  margin: 0 0 18px;
+  font-size: clamp(18px, 5vw, 22px);
+  color: #000;
+}
+
+.doctor-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.doctor-stat {
+  flex: 1;
+  background: #fdece0;
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+
+.doctor-stat-label {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.doctor-stat-value {
+  margin: 0;
+  font-size: clamp(13px, 3.5vw, 15px);
+  font-weight: 700;
+  color: #f5821f;
+}
+
+.doctor-section-title {
+  margin: 0 0 8px;
+  font-size: clamp(15px, 4vw, 17px);
+  color: #000;
+}
+
+.doctor-about {
+  margin: 0 0 22px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b6b;
+}
+
+.doctor-days-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.doctor-month {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.doctor-days {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  overflow-x: auto;
+}
+
+.doctor-day {
+  flex-shrink: 0;
+  border: 1.5px solid #f5b98a;
+  background: #ffffff;
+  color: #f5821f;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doctor-day--active {
+  background: #f5821f;
+  color: #ffffff;
+  border-color: #f5821f;
+}
+
+.doctor-times {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.doctor-time {
+  border: 1.5px solid #f5b98a;
+  background: #ffffff;
+  color: #f5821f;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doctor-time--active {
+  background: #f5821f;
+  color: #ffffff;
+  border-color: #f5821f;
+}
+
+.doctor-location-btn {
+  width: 100%;
+  background: #fdece0;
+  color: #f5821f;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.doctor-book-btn {
+  width: 100%;
+  background: #f5821f;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.doctor-not-found {
+  padding: 40px;
+  text-align: center;
+}

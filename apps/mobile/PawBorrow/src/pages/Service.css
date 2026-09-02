@@ -1,0 +1,243 @@
+.service-content {
+  --background: linear-gradient(180deg, #ffffff 0%, #fbf1eb 100%);
+}
+
+.service {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 24px) clamp(16px, 4vw, 24px) clamp(80px, 18vh, 100px);
+  box-sizing: border-box;
+}
+
+.service-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: clamp(20px, 6vh, 50px);
+  margin-bottom: 18px;
+}
+
+.service-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(13px, 3.5vw, 15px);
+  font-weight: 600;
+  color: #f5821f;
+}
+
+.service-location ion-icon {
+  font-size: clamp(16px, 4.5vw, 20px);
+}
+
+.service-icon-btn {
+  background: none;
+  border: none;
+  font-size: clamp(22px, 6vw, 28px);
+  color: #333;
+  cursor: pointer;
+}
+
+.service-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f5787b 0%, #8f4648 100%);
+  border-radius: 20px;
+  box-shadow: 0px 8px 20px rgba(22, 34, 51, 0.12);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.service-promo-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: clamp(17px, 4.5vw, 22px);
+  color: #ffffff;
+}
+
+.service-promo-subtitle {
+  margin: 0;
+  font-size: clamp(12px, 3vw, 14px);
+  color: #ffe3c2;
+  max-width: clamp(110px, 32vw, 140px);
+}
+
+.service-promo-photo {
+  width: clamp(60px, 20vw, 84px);
+  height: clamp(60px, 20vw, 84px);
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.service-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid #f5b98a;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.service-search input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: clamp(13px, 3.5vw, 16px);
+  background: transparent;
+}
+
+.service-section {
+  margin-bottom: 24px;
+}
+
+.service-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.service-section h2 {
+  font-size: clamp(16px, 4.5vw, 20px);
+  margin: 0 0 12px;
+  color: #000;
+}
+
+.service-section-header h2 {
+  margin: 0;
+}
+
+.service-see-all {
+  font-size: clamp(13px, 3.5vw, 15px);
+  color: #9a9a9a;
+}
+
+.service-categories {
+  --cat-width: clamp(64px, 20vw, 80px);
+  --cat-gap: 16px;
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--cat-gap);
+  overflow-x: auto;
+  padding-bottom: 4px;
+  width: calc(4 * var(--cat-width) + 3 * var(--cat-gap));
+  max-width: 100%;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.service-category {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  width: var(--cat-width);
+  scroll-snap-align: start;
+}
+
+.service-category img {
+  width: var(--cat-width);
+  height: var(--cat-width);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.service-category span {
+  font-size: clamp(11px, 3vw, 13px);
+  text-align: center;
+  color: #f5821f;
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.service-specialists {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.service-specialist-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(22, 34, 51, 0.08);
+  padding: 14px;
+}
+
+.service-specialist-card img {
+  width: clamp(56px, 16vw, 72px);
+  height: clamp(56px, 16vw, 72px);
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.service-specialist-name {
+  margin: 0 0 2px;
+  font-size: clamp(14px, 3.8vw, 16px);
+  font-weight: 600;
+  color: #000;
+}
+
+.service-specialist-specialty {
+  margin: 0 0 6px;
+  font-size: clamp(12px, 3.2vw, 13px);
+  color: #9a9a9a;
+}
+
+.service-specialist-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: clamp(12px, 3.2vw, 13px);
+  color: #333;
+}
+
+.service-specialist-rating,
+.service-specialist-distance {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.service-specialist-rating ion-icon {
+  color: #f5b800;
+}
+
+@media (max-height: 640px) {
+  .service-header {
+    margin-top: 20px;
+  }
+
+  .service-section {
+    margin-bottom: 16px;
+  }
+
+  .service-nav {
+    height: 68px;
+  }
+
+  .service-nav-fab {
+    width: 54px;
+    height: 54px;
+    transform: translateY(-16px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .service-header {
+    margin-top: 10px;
+  }
+
+  .service-promo {
+    padding: 14px;
+  }
+}

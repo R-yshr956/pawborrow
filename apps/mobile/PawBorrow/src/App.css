@@ -1,0 +1,170 @@
+html, body, #root, ion-app {
+  background: linear-gradient(
+    180deg,
+    rgba(245, 120, 123, 1) 0%,
+    rgba(143, 70, 72, 1) 100%
+  );
+  margin: 0;
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.splash-screen-frame {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.splash-screen {
+  background: linear-gradient(
+    180deg,
+    rgba(245, 120, 123, 1) 0%,
+    rgba(143, 70, 72, 1) 100%
+  );
+  --stand-height: clamp(48px, 8vh, 70px);
+  border-radius: clamp(18px, 4vw, 66px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.splash-screen .img-photoroom {
+  width: clamp(264px, 74vw, 504px);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.splash-logo-wrap {
+  padding-top: clamp(60px, 16vh, 180px);
+  text-align: center;
+  width: 100%;
+}
+
+.splash-arch {
+  display: none;
+}
+
+.splash-vector {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--stand-height) + clamp(-30px, -6vh, -11px));
+  transform: translateX(-50%);
+  z-index: 2;
+  width: min(78vw, 420px);
+  height: auto;
+}
+
+.splash-pet-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--stand-height) - 10px);
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(6px, 2vw, 12px);
+  padding: 0 clamp(10px, 4vw, 20px);
+}
+
+.pet-photo {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -6px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pet-card img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pet-card {
+  width: clamp(199px, 39vw, 357px);
+  position: relative;
+  overflow: visible;
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+}
+
+.pet-card--middle {
+  width: clamp(235px, 46vw, 420px);
+  margin-left: clamp(8px, 2vw, 20px);
+  margin-bottom: 20px;
+}
+
+.pet-stand {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--stand-height);
+  background: #1c1c1c;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 2;
+}
+
+.pet-stand-inner {
+  width: 95%;
+  height: 60%;
+  border-radius: 999px;
+  background: #333333;
+  margin-bottom: 13px;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.splash-bottom-bar {
+  height: 34px;
+  background: #1c1c1c;
+  width: 100%;
+}
+
+.splash-screen .closeup-shot-one {
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.splash-screen::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}
+
+@media (max-height: 640px) {
+  .splash-logo-wrap {
+    padding-top: 40px;
+  }
+
+  .splash-screen {
+    --stand-height: clamp(44px, 9vh, 60px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .splash-logo-wrap {
+    padding-top: 24px;
+  }
+
+  .splash-screen {
+    --stand-height: clamp(40px, 10vh, 54px);
+  }
+
+  .splash-pet-row {
+    margin-top: 20px;
+  }
+}
