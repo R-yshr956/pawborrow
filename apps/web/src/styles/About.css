@@ -1,4 +1,3 @@
-/* ---------- About ---------- */
 .about__intro {
   max-width: 640px;
   margin-bottom: 56px;
@@ -101,19 +100,22 @@
 }
 
 .about__team-card .photo-tile {
-  aspect-ratio: 4 / 3;
+  width: 100%;
+  height: 250px; 
+  border-radius: 24px;
+  overflow: hidden;
   margin-bottom: 14px;
+  background: #ee8f9b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.about__team-card h4 {
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.about__team-card p {
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin-top: 2px;
+.about__team-card .photo-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  
+  object-position: center;
 }
 
 @media (max-width: 960px) {

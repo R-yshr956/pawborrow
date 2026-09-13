@@ -1,0 +1,156 @@
+.pet-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 27, 27, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+.pet-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding: 32px;
+}
+
+.pet-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #F1EDE6;
+  color: #1B1B1B;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+}
+
+.pet-modal-image {
+  background: #EFEFEF;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.pet-modal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pet-modal-eyebrow {
+  color: #EE7B6E;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.pet-modal-details h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.pet-modal-breed {
+  color: #6F6F6F;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+}
+
+.pet-modal-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1B1B1B;
+  margin-bottom: 14px;
+}
+
+.pet-modal-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.pet-modal-tag {
+  background: #FBE4E1;
+  color: #E4604F;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.pet-modal-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ECECEC;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.pet-modal-stepper-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pet-modal-stepper-controls button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #ECECEC;
+  background: #fff;
+  font-size: 1rem;
+  display: grid;
+  place-items: center;
+}
+
+.pet-modal-book-btn {
+  width: 100%;
+  background: #1B1B1B;
+  color: #fff;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+
+.pet-modal-availability {
+  color: #4C8B5B;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.pet-modal-description {
+  color: #6F6F6F;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  border-top: 1px solid #ECECEC;
+  padding-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .pet-modal {
+    grid-template-columns: 1fr;
+  }
+}

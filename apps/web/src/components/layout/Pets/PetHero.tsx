@@ -1,5 +1,3 @@
-// src/components/PetsHero.tsx
-
 export default function PetsHero() {
   return (
     <header className="pets-hero">
@@ -12,8 +10,7 @@ export default function PetsHero() {
             four paws
           </h1>
           <p>
-            At et vehicula sodales est proin turpis pellentesque simulla a
-            aliquam amet rhoncus quisque eget sit.
+            Browse available companions ready to share their love. Use the filters below to find the perfect match and all the gear you'll need.
           </p>
         </div>
         <div className="pets-hero-image">

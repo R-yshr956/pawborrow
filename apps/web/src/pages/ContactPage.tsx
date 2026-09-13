@@ -6,7 +6,7 @@ export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <ContactUs />
+      <ContactUs/>
       <Footer />
     </>
   );

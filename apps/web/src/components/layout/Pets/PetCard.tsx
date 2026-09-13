@@ -4,19 +4,23 @@ import type { Pet } from "@/components/layout/Pets/pets";
 
 interface Props {
   pet: Pet;
+  onSelect: (pet: Pet) => void;
 }
 
-export default function PetCard({ pet }: Props) {
+export default function PetCard({ pet, onSelect }: Props) {
   const [liked, setLiked] = useState(false);
 
   return (
-    <div className="pet-card">
+    <div className="pet-card" onClick={() => onSelect(pet)}>
       <div className="pet-card-image">
         <img src={pet.image} alt={pet.name} />
         <button
           className={`pet-card-heart ${liked ? "liked" : ""}`}
           aria-label={liked ? "Remove from favorites" : "Add to favorites"}
-          onClick={() => setLiked((v) => !v)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setLiked((v) => !v);
+          }}
         >
           <Heart size={16} fill={liked ? "#ef7f6b" : "none"} />
         </button>

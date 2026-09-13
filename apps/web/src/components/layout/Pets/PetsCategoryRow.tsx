@@ -5,7 +5,7 @@ export default function PetsCategoryRow() {
   return (
     <section className="pets-category-row">
       <div className="pets-category-header">
-        <h2>Borrow a pet</h2>
+        <h2 className="font-bold">Borrow a pet</h2>
         <div className="pets-category-arrows">
           <button aria-label="Previous">
             <ChevronLeft size={18} />

@@ -1,0 +1,156 @@
+.booking-page {
+  display: flex;
+  justify-content: center;
+  padding: 60px 24px;
+}
+
+.booking-card {
+  display: flex;
+  gap: 40px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+.booking-left,
+.booking-right {
+  flex: 1;
+}
+
+.booking-left h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.booking-subtext {
+  color: #777;
+  margin-bottom: 24px;
+}
+
+.booking-pet-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  border: 2px solid transparent;
+}
+
+.booking-pet-row.active {
+  border-color: #f16c6c;
+  background: #fff5f5;
+}
+
+.booking-pet-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.booking-right {
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.booking-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.booking-field {
+  flex: 1;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-field label {
+  font-size: 13px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.booking-field input,
+.booking-field textarea {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.booking-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.booking-confirm-btn {
+  background: #f16c6c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.booking-confirm-btn:hover {
+  background: #e05a5a;
+}
+.payment-info-list {
+  margin-bottom: 24px;
+}
+
+.payment-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.payment-info-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fdeceb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.payment-method-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-method-row {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.payment-method-row.active {
+  border-color: #f16c6c;
+  background: #fff5f5;
+}
+.payment-info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f16c6c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

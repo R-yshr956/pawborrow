@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
 import "@/styles/Home.css";
@@ -16,24 +17,6 @@ type PhotoTileProps = {
   tone?: "coral" | "peach" | "sage" | "sand" | "ink";
   className?: string;
 };
-
-const POSTS = [
-  {
-    date: "24 May, 2024",
-    title: "First-Time Borrower? Here\u2019s What to Expect",
-    tone: "coral",
-  },
-  {
-    date: "24 May, 2024",
-    title: "How We Screen Every Companion Before Borrowing",
-    tone: "peach",
-  },
-  {
-    date: "24 May, 2024",
-    title: "Weekend With a Dog: A QC Student\u2019s Story",
-    tone: "sand",
-  },
-];
 
 const ITEMS = [
   {
@@ -100,24 +83,28 @@ const CATEGORIES = [
     count: "10 companions",
     tone: "coral" as const,
     image: "/images/category-cats.jpg",
+    filterCategory: "Cat",
   },
   {
     name: "Dogs",
     count: "9 companions",
     tone: "peach" as const,
     image: "/images/category-dogs.jpg",
+    filterCategory: "Dog",
   },
   {
     name: "Guinea Pigs",
     count: "10 companions",
     tone: "sage" as const,
     image: "/images/category-guinea-pigs.jpg",
+    filterCategory: "Guinea Pig",
   },
   {
     name: "Rabbits",
     count: "3 companions",
     tone: "sand" as const,
     image: "/images/category-rabbits.jpg",
+    filterCategory: "Rabbit",
   },
 ];
 
@@ -130,7 +117,7 @@ export default function Home() {
       <FeaturedPets />
       <SecondaryHero />
       <Included />
-      <Stories />
+      <MobileApp />
       <Footer />
     </>
   );
@@ -139,11 +126,7 @@ export default function Home() {
 function PawTile({ tone = "sand", label, className = "" }: PawTileProps) {
   const { bg, paw } = TONES[tone];
   return (
-    <div
-      className={`paw-tile ${className}`}
-      style={{ background: bg }}
-      aria-hidden={label ? undefined : true}
-    >
+    <div className={`paw-tile ${className}`} style={{ background: bg }} aria-hidden={label ? undefined : true}>
       <svg viewBox="0 0 64 64" className="paw-tile__icon" style={{ fill: paw }}>
         <ellipse cx="32" cy="40" rx="15" ry="12" />
         <ellipse cx="14" cy="24" rx="6" ry="8" />
@@ -161,29 +144,25 @@ function Hero() {
     <section id="top" className="hero">
       <div className="hero__text">
         <p className="eyebrow">PawBorrow &middot; Quezon City</p>
-        <h1>
-          Pet companionship,
-          <br />
-          borrowed <span>your way.</span>
-        </h1>
+        <h1> Pet companionship, <br/> borrowed <span>your way.</span></h1>
         <p className="hero__sub">
           Not ready to commit to full-time pet ownership? Borrow a cat, dog, or
           guinea pig for a day, a weekend, or however long you need the company.
         </p>
         <div className="hero__actions">
-          <a href="#browse" className="btn btn--dark">
+          <Link to="/pets" className="btn btn--dark">
             Browse Pets
-          </a>
-          <a href="#how-it-works" className="btn btn--ghost">
+          </Link>
+          <Link to="#how-it-works" className="btn btn--ghost">
             How It Works
-          </a>
+          </Link>
         </div>
       </div>
 
       <div className="hero__art">
         <div className="hero__blob" aria-hidden="true" />
         <img
-          src="/images/hero-dogs.png"
+          src="/images/Ca4.png"
           alt="Three golden retriever puppies available to borrow"
           className="hero__cutout"
         />
@@ -205,7 +184,11 @@ function Categories() {
 
       <div className="categories__grid">
         {CATEGORIES.map((c) => (
-          <a href="#browse" className="category-card" key={c.name}>
+          <Link
+            to={`/pets?category=${encodeURIComponent(c.filterCategory)}`}
+            className="category-card"
+            key={c.name}
+          >
             <PhotoTile
               src={c.image}
               alt={c.name}
@@ -219,7 +202,7 @@ function Categories() {
               </div>
               <span className="category-card__arrow">→</span>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
     </section>
@@ -305,9 +288,9 @@ function SecondaryHero() {
           bowl, leash, bed, and care instructions included. Return them when
           your time's up.
         </p>
-        <a href="#browse" className="btn btn--dark">
+        <Link to="#browse" className="btn btn--dark">
           Learn More
-        </a>
+        </Link>
       </div>
     </section>
   );
@@ -341,23 +324,22 @@ function Included() {
   );
 }
 
-function Stories() {
+function MobileApp() {
   return (
-    <section className="section stories">
-      <h2>Stories & Tips</h2>
-
-      <div className="stories__grid">
-        {POSTS.map((post) => (
-          <a href="#" className="story-card" key={post.title}>
-            <div
-              className={`story-card__cover story-card__cover--${post.tone}`}
-            >
-              <span className="story-card__badge">News</span>
-            </div>
-            <p className="story-card__date">{post.date}</p>
-            <h3>{post.title}</h3>
-          </a>
-        ))}
+    <section className="mx-auto max-w-(--max-w) px-6 pt-14">
+      <div className="flex flex-row items-center justify-center gap-8">
+        <div className="flex">
+            <img
+              src="/images/Mobile.png"
+              alt="Mobile app preview"
+              className="mt-4 w-full max-w-sm"
+            />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-6xl">Download Our</span>
+          <span className="text-6xl font-semibold">Mobile App</span>
+          <img src="/images/Googleplay.png" alt="Google Play Store" className="mt-4 w-full max-w-xs" />
+        </div>
       </div>
     </section>
   );

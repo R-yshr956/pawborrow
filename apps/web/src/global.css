@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 @import "tailwindcss";
 
 /*
@@ -18,8 +19,51 @@ Retrieved 2026-09-02, License - CC BY-SA 4.0
   }
 }
 @theme {
-  /* New breakpoints for @container - @tablet:, @laptop:, @desktop: */
+  --font-cherry: Cherry Bomb One;
+  --font-inter: Inter, sans-serif;
+  --font-poppins: Poppins, sans-serif;
+
   --breakpoint-tablet: 20rem;
   --breakpoint-laptop: 32rem;
   --breakpoint-desktop: 40rem;
+
+  --color-charlotte-50: #edfcfe;
+  --color-charlotte-100: #d1f5fc;
+  --color-charlotte-200: #baeffa;
+  --color-charlotte-300: #6ddaf3;
+  --color-charlotte-400: #2ac0e6;
+  --color-charlotte-500: #0ea3cc;
+  --color-charlotte-600: #0e83ac;
+  --color-charlotte-700: #13698b;
+  --color-charlotte-800: #195671;
+  --color-charlotte-900: #194860;
+  --color-charlotte-950: #0a2e42;
+
+  --color-froly-50: #fef2f2;
+  --color-froly-100: #fde3e4;
+  --color-froly-200: #fdcbcc;
+  --color-froly-300: #faa7a9;
+  --color-froly-400: #f5787b;
+  --color-froly-500: #eb484c;
+  --color-froly-600: #d82a2e;
+  --color-froly-700: #b52024;
+  --color-froly-800: #961e21;
+  --color-froly-900: #7d1f21;
+  --color-froly-950: #440b0c;
+}
+
+
+@utility nav-link {
+  @apply relative text-froly-400
+    after:content-['']
+    after:absolute
+    after:left-1/2
+    after:bottom-0
+    after:w-0
+    after:h-0.5
+    after:bg-froly-500
+    after:transition-all
+    after:duration-300
+    hover:after:w-full
+    hover:after:left-0;
 }

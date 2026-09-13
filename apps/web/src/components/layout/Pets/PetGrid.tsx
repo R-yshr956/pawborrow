@@ -1,4 +1,6 @@
+import { useState } from "react";
 import PetCard from "./PetCard";
+import PetBookingModal from "./PetBookingModal";
 import type { Pet } from "@/components/layout/Pets/pets";
 
 interface Props {
@@ -18,6 +20,7 @@ export default function PetsGrid({
   totalCount,
   pageSize,
 }: Props) {
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, totalCount);
 
@@ -35,20 +38,22 @@ export default function PetsGrid({
 
       <div className="pets-grid">
         {pets.map((pet) => (
-          <PetCard pet={pet} key={pet.id} />
+          <PetCard pet={pet} key={pet.id} onSelect={setSelectedPet} />
         ))}
       </div>
 
       <div className="pets-pagination">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-          <button
-            key={num}
-            className={num === page ? "active" : ""}
-            onClick={() => onPageChange(num)}
-          >
-            {num}
-          </button>
-        ))}
+        <div className="pets-pagination-numbers">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+            <button
+              key={num}
+              className={num === page ? "active" : ""}
+              onClick={() => onPageChange(num)}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
         <button
           className="pets-pagination-next"
           disabled={page === totalPages}
@@ -57,6 +62,8 @@ export default function PetsGrid({
           Next →
         </button>
       </div>
+
+      <PetBookingModal pet={selectedPet} onClose={() => setSelectedPet(null)} />
     </div>
   );
 }
