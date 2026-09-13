@@ -1,0 +1,130 @@
+.profile-content {
+  --background: #f5f5f5;
+}
+
+.profile-page {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: 24px 18px 100px;
+  box-sizing: border-box;
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+.profile-avatar-wrap {
+  width: clamp(88px, 24vw, 110px);
+  height: clamp(88px, 24vw, 110px);
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f2f2f2;
+  border: 4px solid #ffffff;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  margin-bottom: 10px;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: clamp(24px, 7vw, 29px);
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.profile-email {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.profile-field-label {
+  font-size: 12px;
+  color: #7b7b7b;
+}
+
+.profile-field-value {
+  font-size: 14px;
+  color: #1f1f1f;
+  font-weight: 600;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-settings-btn,
+.profile-logout-btn {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+}
+
+.profile-settings-label,
+.profile-logout-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.profile-settings-icon,
+.profile-logout-icon {
+  color: #f5821f;
+  font-size: 18px;
+}
+
+.profile-settings-arrow {
+  color: #9ca3af;
+  font-size: 18px;
+}
+
+.profile-logout-btn {
+  background: #f9f9f9;
+}
+
+.profile-logout-label {
+  color: #f05a5a;
+}
+
+.profile-logout-icon {
+  color: #f05a5a;
+}

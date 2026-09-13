@@ -1,0 +1,59 @@
+.notif-settings-content { --background: #ffffff; }
+
+.notif-settings {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 24px) clamp(16px, 4vw, 24px) calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.notif-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: clamp(16px, 5vh, 30px);
+  margin-bottom: 20px;
+}
+
+.notif-settings-back {
+  position: absolute;
+  left: 0;
+  background: #f5821f;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.notif-settings-header h1 {
+  margin: 0;
+  font-size: clamp(17px, 4.5vw, 20px);
+  font-weight: 600;
+  color: #000;
+}
+
+.notif-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notif-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(22, 34, 51, 0.08);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #000;
+}

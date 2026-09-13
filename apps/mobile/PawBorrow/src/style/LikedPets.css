@@ -1,0 +1,129 @@
+.liked-pets-content {
+  --background: linear-gradient(180deg, #F5787B 0%, #8F4648 100%);
+}
+
+.liked-pets {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 22px);
+  padding-bottom: clamp(90px, 18vh, 120px);
+  box-sizing: border-box;
+  margin-top: 60px;
+}
+
+.liked-pets-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+.liked-pets-back {
+  position: absolute;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #F5787B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.liked-pets-header h1 {
+  margin: 0;
+  font-size: clamp(17px, 4.5vw, 20px);
+  color: #111827;
+  font-weight: 600;
+}
+
+.liked-pets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 12px;
+}
+
+.liked-pet-item {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: center;
+  cursor: pointer;
+}
+
+.liked-pet-item img {
+  width: 100%;
+  aspect-ratio: 1.08;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.liked-pet-item span {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.liked-pets-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  text-align: center;
+  background: linear-gradient(180deg, #fffaf5 0%, #fff 100%);
+  border-radius: 24px;
+  padding: 30px 18px;
+}
+
+.liked-pets-empty-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fde7d8;
+  color: #F5787B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin-bottom: 16px;
+}
+
+.liked-pets-empty h2 {
+  margin: 0 0 8px;
+  color: #1f2937;
+}
+
+.liked-pets-empty p {
+  margin: 0 0 20px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.liked-pets-button {
+  border: none;
+  border-radius: 999px;
+  background: #F5787B;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.liked-pets-summary {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}

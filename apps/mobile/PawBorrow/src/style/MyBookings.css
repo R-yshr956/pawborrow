@@ -1,0 +1,106 @@
+.my-bookings-content { --background: #ffffff; }
+
+.my-bookings {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 24px) clamp(16px, 4vw, 24px) calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.my-bookings-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: clamp(16px, 5vh, 30px);
+  margin-bottom: 20px;
+}
+
+.my-bookings-back {
+  position: absolute;
+  left: 0;
+  background: #f5821f;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.my-bookings-header h1 {
+  margin: 0;
+  font-size: clamp(17px, 4.5vw, 20px);
+  font-weight: 600;
+  color: #000;
+}
+
+.my-bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.my-bookings-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(22, 34, 51, 0.08);
+  padding: 14px;
+}
+
+.my-bookings-card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.my-bookings-info { flex: 1; }
+
+.my-bookings-name { margin: 0 0 2px; font-weight: 700; font-size: 14px; color: #000; }
+.my-bookings-subtitle { margin: 0 0 6px; font-size: 12px; color: #9a9a9a; }
+
+.my-bookings-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #6b6b6b;
+  margin-bottom: 6px;
+}
+
+.my-bookings-status {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.my-bookings-status--upcoming { background: #fdece0; color: #f5821f; }
+.my-bookings-status--completed { background: #e3f5e5; color: #2e7d32; }
+.my-bookings-status--cancelled { background: #fbe2e1; color: #e0433d; }
+
+.my-bookings-cancel {
+  background: none;
+  border: 1px solid #e0433d;
+  color: #e0433d;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.my-bookings-empty {
+  text-align: center;
+  color: #9a9a9a;
+  margin-top: 60px;
+}

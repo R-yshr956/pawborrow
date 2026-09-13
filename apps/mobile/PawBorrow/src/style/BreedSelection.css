@@ -1,0 +1,75 @@
+.breed-content {
+  --background: #ffffff;
+}
+
+.breed {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 24px) clamp(16px, 4vw, 24px) calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.breed-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: clamp(16px, 5vh, 30px);
+  margin-bottom: 20px;
+}
+
+.breed-back {
+  position: absolute;
+  left: 0;
+  background: #f5821f;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.breed-header h1 {
+  margin: 0;
+  font-size: clamp(17px, 4.5vw, 20px);
+  font-weight: 600;
+  color: #000;
+}
+
+.breed-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.breed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.breed-card img {
+  width: 100%;
+  aspect-ratio: 1.1;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.breed-card span {
+  font-size: clamp(13px, 3.5vw, 15px);
+  font-weight: 600;
+  color: #000;
+  text-align: center;
+}
+
+.breed-not-found {
+  padding: 40px;
+  text-align: center;
+}
