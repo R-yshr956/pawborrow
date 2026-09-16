@@ -72,6 +72,7 @@ import AboutUs from './pages/AboutUs';
 import LikedPets from './pages/LikedPets';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { BookingsProvider } from './context/BookingsContext';
+import { CartProvider } from './context/CartContext';
 import MyBookings from './pages/MyBookings';
 import PaymentMethods from './pages/PaymentMethods';
 import NotificationSettings from './pages/NotificationSettings';
@@ -79,6 +80,8 @@ import AppSettings from './pages/AppSettings';
 import BookingConfirmation from './pages/BookingConfirmation';
 import BookingReview from './pages/BookingReview';
 import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Cart from './pages/Cart';
 
 setupIonicReact();
 
@@ -86,7 +89,9 @@ setupIonicReact();
 const App: React.FC = () => (
   <AuthProvider>
     <BookingsProvider>
-      <AppContent />
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
     </BookingsProvider>
   </AuthProvider>
 );
@@ -117,6 +122,7 @@ const AppContent: React.FC = () => {
           <IonRouterOutlet>
             <Route path="/login" element={<Login onLoginSuccess={login} />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </IonRouterOutlet>
         </IonReactRouter>
@@ -131,6 +137,7 @@ const AppContent: React.FC = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/notification" element={<Notifications />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/:categoryId" element={<Shop />} />
         <Route path="/training" element={<Training />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
@@ -148,7 +155,9 @@ const AppContent: React.FC = () => {
         <Route path="/app-settings" element={<AppSettings />} />
         <Route path="/booking-confirmation" element={<BookingConfirmation />} />
         <Route path="/booking-review" element={<BookingReview />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </IonRouterOutlet>
       <BottomNav />

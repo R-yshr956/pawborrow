@@ -111,6 +111,24 @@
   object-fit: cover;
 }
 
+.shop-cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(255, 77, 79, 0.35);
+}
+
 @media (max-height: 640px) {
   .shop-nav {
     height: 68px;

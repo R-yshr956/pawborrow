@@ -6,26 +6,30 @@ import { pets } from '../data/pets';
 import { useEffect, useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import { matchesSearch } from '../assets/images/utils/search';
+import { useAuth, getUserScopedStorageKey } from '../context/AuthContext';
 import '../style/BreedPets.css';
-
-const LIKED_PETS_STORAGE_KEY = 'pawborrow-liked-pets';
 
 const BreedPets = () => {
   const { animalId, breedId } = useParams<{ animalId: string; breedId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const likedPetsStorageKey = getUserScopedStorageKey('pawborrow-liked-pets', user?.email);
   const [searchTerm, setSearchTerm] = useState('');
-  const [likedPetIds, setLikedPetIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(LIKED_PETS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [likedPetIds, setLikedPetIds] = useState<string[]>([]);
 
   useEffect(() => {
-    localStorage.setItem(LIKED_PETS_STORAGE_KEY, JSON.stringify(likedPetIds));
-  }, [likedPetIds]);
+    try {
+      const stored = localStorage.getItem(likedPetsStorageKey);
+      setLikedPetIds(stored ? JSON.parse(stored) : []);
+    } catch {
+      setLikedPetIds([]);
+    }
+  }, [likedPetsStorageKey]);
+
+  useEffect(() => {
+    if (!likedPetsStorageKey) return;
+    localStorage.setItem(likedPetsStorageKey, JSON.stringify(likedPetIds));
+  }, [likedPetIds, likedPetsStorageKey]);
 
   const category = animalBreeds.find((c) => c.id === animalId);
   const breed = category?.breeds.find((b) => b.id === breedId);

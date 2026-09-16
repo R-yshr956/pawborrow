@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  margin-top: clamp(16px, 5vh, 30px);
+  margin-top: clamp(16px, 5vh, 60px);
   margin-bottom: 22px;
 }
 

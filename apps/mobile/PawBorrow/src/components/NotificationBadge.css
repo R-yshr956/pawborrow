@@ -1,0 +1,11 @@
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  box-shadow: 0 0 0 2px #fff;
+  display: inline-block;
+}

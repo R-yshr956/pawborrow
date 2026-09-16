@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export interface UserProfile {
   email: string;
@@ -7,6 +7,12 @@ export interface UserProfile {
   phoneNumber: string;
   accountCreated: string;
 }
+
+export const getUserScopedStorageKey = (prefix: string, email?: string | null) => {
+  const normalizedEmail = (email ?? 'guest').trim().toLowerCase();
+  const safeEmail = normalizedEmail.replace(/[^a-z0-9@._-]/g, '_') || 'guest';
+  return `${prefix}-${safeEmail}`;
+};
 
 interface AuthContextValue {
   isLoggedIn: boolean;
@@ -46,11 +52,26 @@ const readStoredUser = (): UserProfile | null => {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem(SESSION_STORAGE_KEY) === 'true';
-  });
-  const [user, setUser] = useState<UserProfile | null>(() => readStoredUser());
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const hasPersistedSession = window.localStorage.getItem(SESSION_STORAGE_KEY) === 'true';
+    if (!hasPersistedSession) {
+      window.localStorage.removeItem(USER_STORAGE_KEY);
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      setUser(null);
+      setIsLoggedIn(false);
+      return;
+    }
+
+    window.localStorage.removeItem(USER_STORAGE_KEY);
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    setUser(null);
+    setIsLoggedIn(false);
+  }, []);
 
   const login = (profile: Partial<UserProfile> = {}) => {
     const nextUser = {

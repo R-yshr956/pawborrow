@@ -7,6 +7,14 @@ const stats = [
   { value: "3", label: "Years serving QC" },
 ];
 
+const team = [
+  { name: "Elaiza Bugayong", role: "Seller", photo: "/images/team-elaiza.jpg" },
+  { name: "Anthony Miguel Balungay", role: "Seller", photo: "/images/team-anthony.jpg" },
+  { name: "Yu Miura", role: "Seller", photo: "/images/team-yu.jpg" },
+  { name: "Reyniel", role: "Seller", photo: "/images/team-reyniel.jpg" },
+  { name: "John Michael Vincent Uayan", role: "Seller", photo: "/images/team-john.jpg" },
+];
+
 const instagramPosts = [
   "/images/insta-1.jpg",
   "/images/insta-2.jpg",

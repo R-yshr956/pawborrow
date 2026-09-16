@@ -2,6 +2,15 @@
 
 @import "tailwindcss";
 
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+
 /*
 Source - https://stackoverflow.com/a/79650025
 Posted by rozsazoltan, modified by community. See post 'Timeline' for change history
@@ -50,6 +59,8 @@ Retrieved 2026-09-02, License - CC BY-SA 4.0
   --color-froly-800: #961e21;
   --color-froly-900: #7d1f21;
   --color-froly-950: #440b0c;
+
+  --shadow-card: 0 2px 12px 0 rgba(0, 0, 0, 0.078);
 }
 
 
@@ -67,3 +78,4 @@ Retrieved 2026-09-02, License - CC BY-SA 4.0
     hover:after:w-full
     hover:after:left-0;
 }
+

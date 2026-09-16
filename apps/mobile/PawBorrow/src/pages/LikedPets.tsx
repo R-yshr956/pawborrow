@@ -3,22 +3,24 @@ import { IonContent, IonPage, IonIcon } from '@ionic/react';
 import { chevronBackOutline, heartDislikeOutline, pawOutline } from 'ionicons/icons';
 import { pets } from '../data/pets';
 import { useEffect, useState } from 'react';
+import { useAuth, getUserScopedStorageKey } from '../context/AuthContext';
 import '../style/LikedPets.css';
-
-const LIKED_PETS_STORAGE_KEY = 'pawborrow-liked-pets';
 
 const LikedPets = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [likedPetIds, setLikedPetIds] = useState<string[]>([]);
 
   useEffect(() => {
+    const likedPetsStorageKey = getUserScopedStorageKey('pawborrow-liked-pets', user?.email);
+
     try {
-      const stored = localStorage.getItem(LIKED_PETS_STORAGE_KEY);
+      const stored = localStorage.getItem(likedPetsStorageKey);
       setLikedPetIds(stored ? JSON.parse(stored) : []);
     } catch {
       setLikedPetIds([]);
     }
-  }, []);
+  }, [user?.email]);
 
   const likedPets = pets.filter((pet) => likedPetIds.includes(pet.id));
 

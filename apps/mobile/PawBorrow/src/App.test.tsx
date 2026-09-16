@@ -1,10 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
-import { test, expect, vi } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { beforeEach, test, expect, vi } from 'vitest';
 import App from './App';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 function LoginHarness() {
@@ -58,5 +59,31 @@ test('stores the shared account profile after a successful login', async () => {
     fullName: 'Sarah',
     phoneNumber: '+62 812 3456 7890',
     accountCreated: 'August 2024'
+  });
+});
+
+beforeEach(() => {
+  localStorage.clear();
+  vi.useRealTimers();
+});
+
+test('redirects to the login screen after logout from the authenticated app flow', async () => {
+  const user = userEvent.setup();
+
+  render(
+    <AuthProvider>
+      <MemoryRouter initialEntries={['/profile']}>
+        <Routes>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<div>Login Screen</div>} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>
+  );
+
+  await user.click(screen.getByRole('button', { name: /logout/i }));
+
+  await waitFor(() => {
+    expect(screen.getByText(/login screen/i)).toBeInTheDocument();
   });
 });

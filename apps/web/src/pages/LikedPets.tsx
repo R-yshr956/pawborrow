@@ -1,103 +1,115 @@
-import { useState } from "react";
 import { Heart } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  useLikedPets,
+  useRemoveLikedPet,
+  type LikedPet,
+} from "@repo/api";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
 import "@/styles/Favorites.css";
 
-interface LikedPet {
-  id: number;
-  name: string;
-  image: string;
-  breed: string;
-  age?: string;
-  bookedDate: string;
+
+interface LikedPetCardProps {
+  likedPet: LikedPet;
+  onDelete: (petId: number) => void;
+  isDeleting: boolean;
 }
 
-const LIKED_PETS: LikedPet[] = [
-  {
-    id: 1,
-    name: "Nidra",
-    image: "/images/nidra.png",
-    breed: "Scottish Fold",
-    bookedDate: "August 8",
-  },
-  {
-    id: 2,
-    name: "Yuki",
-    image: "/images/yuki.png",
-    breed: "Scottish Fold",
-    age: "5 Months (Kitten)",
-    bookedDate: "August 8",
-  },
-  {
-    id: 3,
-    name: "Chewy",
-    image: "/images/chewy.png",
-    breed: "Scottish Fold",
-    bookedDate: "August 8",
-  },
-  {
-    id: 4,
-    name: "Haru",
-    image: "/images/haru1.png",
-    breed: "Scottish Fold",
-    bookedDate: "August 8",
-  },
-  {
-    id: 5,
-    name: "Haru",
-    image: "/images/haru2.png",
-    breed: "Scottish Fold",
-    bookedDate: "August 8",
-  },
-];
-
 function LikedPetCard({
-  pet,
+  likedPet,
   onDelete,
-}: {
-  pet: LikedPet;
-  onDelete: (id: number) => void;
-}) {
-  const [liked, setLiked] = useState(true);
+  isDeleting,
+}: LikedPetCardProps) {
+  const navigate = useNavigate();
+  const pet = likedPet.pet;
+
+  if (!pet) return null;
+
+  function handleBookAgain() {
+  if (!pet) return;
+
+  navigate("/booking", {
+    state: {
+      pet: {
+        id: pet.pet_id,
+        name: pet.name,
+        breed: pet.breed ?? "",
+        image: pet.image_url ?? "/images/pet-placeholder.jpg",
+        status: pet.status,
+        category: pet.category?.category_name ?? "",
+        hourlyRate: Number(pet.category?.hourly_rate ?? 0),
+      },
+    },
+  });
+}
 
   return (
     <div className="liked-card">
       <div className="liked-card__image">
-        <img src={pet.image} alt={pet.name} />
+        <img
+          src={pet.image_url ?? "/images/pet-placeholder.jpg"}
+          alt={pet.name}
+        />
       </div>
 
       <div className="liked-card__body">
         <div className="liked-card__title-row">
           <h3>{pet.name}</h3>
+
           <button
+            type="button"
             className="liked-card__heart"
-            aria-label={liked ? "Unlike" : "Like"}
-            onClick={() => setLiked((l) => !l)}
+            aria-label={`Unlike ${pet.name}`}
+            onClick={() => onDelete(pet.pet_id)}
+            disabled={isDeleting}
           >
-            <Heart
-              size={18}
-              fill={liked ? "#f26d6d" : "none"}
-              stroke="#f26d6d"
-            />
+            <Heart size={18} fill="#f26d6d" stroke="#f26d6d" />
           </button>
         </div>
 
         <div className="liked-card__meta-block">
-          <p className="liked-card__meta">Breed: {pet.breed}</p>
-          {pet.age && <p className="liked-card__meta">Age: {pet.age}</p>}
+          <p className="liked-card__meta">
+            Breed: {pet.breed ?? "Not specified"}
+          </p>
+
+          {pet.category?.category_name && (
+            <p className="liked-card__meta">
+              Category: {pet.category.category_name}
+            </p>
+          )}
+
+          <p className="liked-card__meta">
+            Status: {pet.status}
+          </p>
         </div>
 
-        <p className="liked-card__booked">Booked {pet.bookedDate}</p>
+        <p className="liked-card__booked">
+          Liked{" "}
+          {new Date(likedPet.created_at).toLocaleDateString(undefined, {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
 
         <div className="liked-card__actions">
-          <button className="btn btn--book-again">Book Again</button>
           <button
-            className="btn btn--delete"
-            onClick={() => onDelete(pet.id)}
+            type="button"
+            className="btn btn--book-again"
+            onClick={handleBookAgain}
+            disabled={pet.status !== "available"}
           >
-            Delete
+            {pet.status === "available" ? "Book Now" : "Unavailable"}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn--delete"
+            onClick={() => onDelete(pet.pet_id)}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Removing..." : "Delete"}
           </button>
         </div>
       </div>
@@ -106,11 +118,31 @@ function LikedPetCard({
 }
 
 export default function LikedPets() {
-  const [likedPets, setLikedPets] = useState(LIKED_PETS);
+  const {
+    data: likedPets,
+    isLoading,
+    error,
+  } = useLikedPets();
 
-  const handleDelete = (id: number) => {
-    setLikedPets((prev) => prev.filter((p) => p.id !== id));
-  };
+  const {
+    mutate: removePet,
+    isPending: isDeleting,
+    error: deleteError,
+  } = useRemoveLikedPet();
+
+  function handleDelete(petId: number) {
+    removePet(petId, {
+      onSuccess: () => {
+        console.log("Pet removed from liked pets:", petId);
+      },
+
+      onError: (removeError) => {
+        console.error("Failed to remove liked pet:", removeError);
+      },
+    });
+  }
+
+  const displayedError = error ?? deleteError;
 
   return (
     <>
@@ -121,6 +153,7 @@ export default function LikedPets() {
           <Link to="/bookings" className="favorites-tab">
             Booking History
           </Link>
+
           <Link to="/favorites" className="favorites-tab is-active">
             Pets You Liked
           </Link>
@@ -129,12 +162,35 @@ export default function LikedPets() {
         <section className="favorites-section">
           <h1 className="favorites-heading">Pets You Liked</h1>
 
-          {likedPets.length === 0 ? (
-            <p className="favorites-empty">You haven't liked any pets yet.</p>
-          ) : (
+          {isLoading && (
+            <p className="favorites-empty">Loading liked pets...</p>
+          )}
+
+          {displayedError && (
+            <p className="favorites-empty" role="alert">
+              {displayedError instanceof Error
+                ? displayedError.message
+                : "Failed to load liked pets."}
+            </p>
+          )}
+
+          {!isLoading &&
+            !displayedError &&
+            (!likedPets || likedPets.length === 0) && (
+              <p className="favorites-empty">
+                You haven't liked any pets yet.
+              </p>
+            )}
+
+          {!isLoading && !displayedError && likedPets && likedPets.length > 0 && (
             <div className="liked-grid">
-              {likedPets.map((pet) => (
-                <LikedPetCard key={pet.id} pet={pet} onDelete={handleDelete} />
+              {likedPets.map((likedPet) => (
+                <LikedPetCard
+                  key={likedPet.liked_pet_id}
+                  likedPet={likedPet}
+                  onDelete={handleDelete}
+                  isDeleting={isDeleting}
+                />
               ))}
             </div>
           )}

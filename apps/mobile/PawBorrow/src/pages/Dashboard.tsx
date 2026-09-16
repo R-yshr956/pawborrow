@@ -12,7 +12,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import SearchBar from '../components/SearchBar';
+import NotificationBadge from '../components/NotificationBadge';
 import { matchesSearch } from '../assets/images/utils/search';
+import { useBookings } from '../context/BookingsContext';
 
 
 import avatar from '../assets/images/dashboard/avatar-sarah.png';
@@ -37,7 +39,9 @@ const categories = [
 export const Dashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const { notifications } = useBookings();
 
+  const unreadNotifications = notifications.filter((notification) => !notification.isRead).length;
   const filteredCategories = categories.filter((cat) => matchesSearch(cat.label, searchTerm));
 
   return (
@@ -46,14 +50,19 @@ export const Dashboard = () => {
         <div className="dashboard">
           <header className="dashboard-header">
             <div className="dashboard-user">
-              <img className="dashboard-avatar" src={avatar} alt="Sarah" />
+              <button className="dashboard-avatar-btn" aria-label="Go to profile" onClick={() => navigate('/profile')}>
+                <img className="dashboard-avatar" src={avatar} alt="Sarah" />
+              </button>
               <div>
                 <p className="dashboard-greeting">Hello, Sarah</p>
                 <p className="dashboard-subgreeting">Good Morning!</p>
               </div>
             </div>
             <button className="dashboard-icon-btn" aria-label="Notifications" onClick={() => navigate('/notification')}>
-              <IonIcon icon={notificationsOutline} />
+              <div className="dashboard-icon-wrap">
+                <IonIcon icon={notificationsOutline} />
+                <NotificationBadge count={unreadNotifications} ariaLabel="Unread notifications" />
+              </div>
             </button>
           </header>
 

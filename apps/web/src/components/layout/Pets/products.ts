@@ -7,7 +7,6 @@ export interface Product {
 }
 
 export const products: Product[] = [
-  // ===== PET FOOD (14) =====
   { id: 1, name: "Dry Kibble (Adult Maintenance)", productCategory: "Pet Food", animals: ["Dog"], image: "/images/products/food1.png" },
   { id: 2, name: "Wet Canned Food (High-protein loaf/gravy)", productCategory: "Pet Food", animals: ["Dog"], image: "/images/products/food2.png" },
   { id: 3, name: "Puppy Starter Blend", productCategory: "Pet Food", animals: ["Dog"], image: "/images/products/food3.png" },
@@ -23,7 +22,6 @@ export const products: Product[] = [
   { id: 13, name: "Timothy / Orchard Grass Hay", productCategory: "Pet Food", animals: ["Guinea Pig"], image: "/images/products/food13.png" },
   { id: 14, name: "Dried Veggie & Vitamin C Chew Drops", productCategory: "Pet Food", animals: ["Guinea Pig"], image: "/images/products/food14.png" },
 
-  // ===== BED & COMFORT (10) =====
   { id: 15, name: "Small Donut Cuddle Bed", productCategory: "Bed & Comfort", animals: ["Cat", "Dog"], image: "/images/products/bed1.png" },
   { id: 16, name: "Medium Orthopedic Bolster Bed", productCategory: "Bed & Comfort", animals: ["Dog"], image: "/images/products/bed2.png" },
   { id: 17, name: "Large Waterproof Pet Pad", productCategory: "Bed & Comfort", animals: ["Dog"], image: "/images/products/bed3.png" },
@@ -35,7 +33,7 @@ export const products: Product[] = [
   { id: 23, name: "Portable Playpen / Enclosure", productCategory: "Bed & Comfort", animals: ["Rabbit", "Guinea Pig"], image: "/images/products/bed9.png" },
   { id: 24, name: "Calming Car Seat Harness/Booster", productCategory: "Bed & Comfort", animals: ["Dog", "Cat"], image: "/images/products/bed10.png" },
 
-  // ===== PET TOYS (13) =====
+
   { id: 25, name: "Heavy-Duty Rubber Chew / Kong (Fillable)", productCategory: "Pet Toys", animals: ["Dog"], image: "/images/products/toy1.png" },
   { id: 26, name: "Braided Rope Tug Toy", productCategory: "Pet Toys", animals: ["Dog"], image: "/images/products/toy2.png" },
   { id: 27, name: "Squeaky Plush Toy", productCategory: "Pet Toys", animals: ["Dog"], image: "/images/products/toy3.png" },

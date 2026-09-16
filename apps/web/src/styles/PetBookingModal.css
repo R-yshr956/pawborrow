@@ -154,3 +154,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+.pet-modal-book-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pet-modal-unavailable {
+  margin-top: 12px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}

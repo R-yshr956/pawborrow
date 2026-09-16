@@ -29,7 +29,7 @@ const PetCategory: React.FC = () => {
         <IonContent fullscreen className="category-content">
                 <div className="category">
                   <header className="category-header">
-                    <button className="category-back" aria-label="Go back" onClick={() => navigate('/shop')}>
+                    <button className="category-back" aria-label="Go back" onClick={() => navigate('/shop?category=pets')}>
                       <IonIcon icon={chevronBackOutline} />
                     </button>
                     <h1>Pets</h1>

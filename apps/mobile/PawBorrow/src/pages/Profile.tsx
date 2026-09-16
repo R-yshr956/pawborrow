@@ -15,6 +15,11 @@ const Profile = () => {
   const accountCreated = user?.accountCreated ?? 'August 2024';
   const email = user?.email ?? 'test@pawborrow.com';
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <IonPage>
       <IonContent fullscreen className="profile-content">
@@ -58,7 +63,7 @@ const Profile = () => {
               <IonIcon icon={chevronForwardOutline} className="profile-settings-arrow" />
             </button>
 
-            <button className="profile-logout-btn" onClick={logout}>
+            <button className="profile-logout-btn" onClick={handleLogout}>
               <span className="profile-logout-label">
                 <IonIcon icon={logOutOutline} className="profile-logout-icon" />
                 Logout

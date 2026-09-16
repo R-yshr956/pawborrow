@@ -191,20 +191,111 @@
   position: relative;
 }
 
-.navbar__badge {
+.navbar__notif-badge {
   position: absolute;
   top: -4px;
   right: -4px;
+  display: flex;
+  min-width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  border: 2px solid #fff;
+  border-radius: 999px;
   background: #f26d6d;
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   line-height: 1;
-  padding: 0 3px;
+  pointer-events: none;
+}
+
+.navbar__notif-dropdown li.navbar__notif-unread {
+  background: #fff5f5;
+}
+
+.navbar__notif-dropdown li.navbar__notif-unread:hover {
+  background: #ffebeb;
+}
+.navbar__notif-dropdown {
+  left: auto;
+  right: 0;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: 380px;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid #f5c6c0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+}
+
+.navbar__notif-arrow {
+  left: auto;
+  right: 10px;
+}
+
+.navbar__notif-title {
+  margin: 0;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.navbar__notif-dropdown ul {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navbar__notif-dropdown li {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  box-sizing: border-box;
+}
+
+.navbar__notif-avatar {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.navbar__notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.navbar__notif-body p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.navbar__notif-body p strong {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.navbar__notif-time {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: left;
+}
+
+.navbar__notif-dropdown li.navbar__notif-unread {
+  background: #fff5f5;
 }

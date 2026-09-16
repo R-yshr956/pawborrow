@@ -1,12 +1,17 @@
 import { IonContent, IonPage, IonIcon } from '@ionic/react';
 import { chevronBackOutline, checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useBookings } from '../context/BookingsContext';
 import '../style/Notification.css';
 
 export const Notification = () => {
   const navigate = useNavigate();
-  const { notifications } = useBookings();
+  const { notifications, markNotificationsAsRead } = useBookings();
+
+  useEffect(() => {
+    markNotificationsAsRead();
+  }, [markNotificationsAsRead]);
 
   const groups = notifications.reduce<Record<string, typeof notifications>>((acc, n) => {
     (acc[n.createdAt] ||= []).push(n);

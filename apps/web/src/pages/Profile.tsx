@@ -1,169 +1,441 @@
-import Navbar from "../components/ui/Navbar"
-import {} from "@repo/api"
-import { User, ArrowRight, Mail, KeyRound, Phone, Trash, CalendarClock, Megaphone, UsersRound,} from 'lucide-react';
+import { useState } from "react";
+import Navbar from "../components/ui/Navbar";
+import {
+  useProfile,
+  useUpdateProfile,
+  type UserProfile,
+} from "@repo/api";
+
+import {
+  User,
+  ArrowRight,
+  Mail,
+  KeyRound,
+  Phone,
+  X,
+} from "lucide-react";
+
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  profileNameSchema,
+  profilePhoneSchema,
+} from "@/utils/validation";
+
+type EditableField = "name" | "phone" | null;
+
+type NameForm = z.infer<typeof profileNameSchema>;
+type PhoneForm = z.infer<typeof profilePhoneSchema>;
 
 export default function Profile() {
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError,
+  } = useProfile();
+
+  const [editingField, setEditingField] =
+    useState<EditableField>(null);
+
+  if (profileLoading) {
+    return (
+      <main>
+        <Navbar />
+
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <p className="text-sm text-gray-500">
+            Loading profile...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (isError || !profile) {
+    return (
+      <main>
+        <Navbar />
+
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <p className="text-sm text-red-500">
+            Something went wrong loading your profile.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  const fullName =
+    [profile.first_name, profile.last_name]
+      .filter(Boolean)
+      .join(" ") || "Not set";
+
   return (
     <main>
       <Navbar />
-      <div className="w-full p-6 ">
-      <div className="mx-auto flex w-full max-w-[860px] flex-col gap-8 ">
-        <div className="flex w-full justify-center ">
-          <div className="group relative h-[120px] w-[120px] overflow-hidden">
-            <img  src="/images/test-profile.jpg" className="h-[120px] w-[120px] rounded-md bg-red-600" />
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 ">
-          <div className="flex flex-col gap-0.5 pb-1">
-            <div className="text-base font-medium">General</div>
-            <div className="text-xs">Manage your basic profile information</div>
-          </div>
-          <div className="flex w-full flex-col overflow-hidden rounded-lg border">
-            <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <User className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Display Name</div>
-                  <div className="text-xs text-sd-muted-foreground supports-[not(overflow-wrap:anywhere)]:[word-break:break-word] supports-[overflow-wrap:anywhere]:[overflow-wrap:anywhere]">John Doe</div>
-                </div>
-              </div>
-              <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-            </div>
-            <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <User className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Name</div>
-                  <div className="text-xs text-sd-muted-foreground supports-[not(overflow-wrap:anywhere)]:[word-break:break-word] supports-[overflow-wrap:anywhere]:[overflow-wrap:anywhere]">John </div>
-                </div>
-              </div>
-               <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-            </div>
-            <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <Mail className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Email</div>
-                  <div className="text-xs text-sd-muted-foreground supports-[not(overflow-wrap:anywhere)]:[word-break:break-word] supports-[overflow-wrap:anywhere]:[overflow-wrap:anywhere]">pawborrow@gmail.com</div>
-                </div>
-              </div>
-               <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-            </div>
-                 <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <Phone className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Phone</div>
-                  <div className="text-xs text-sd-muted-foreground supports-[not(overflow-wrap:anywhere)]:[word-break:break-word] supports-[overflow-wrap:anywhere]:[overflow-wrap:anywhere]">+6309573458734</div>
-                </div>
-              </div>
-               <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-            </div>
-              <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <KeyRound className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Password</div>
-                  <div className="text-xs text-sd-muted-foreground supports-[not(overflow-wrap:anywhere)]:[word-break:break-word] supports-[overflow-wrap:anywhere]:[overflow-wrap:anywhere]">Not set</div>
-                </div>
-              </div>
-               <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-2">
-           <div className="flex flex-col gap-0.5 pb-1">
-            <div className="text-base font-medium">Privacy Settings</div>
-           </div>
-           <div className="flex w-full flex-col overflow-hidden rounded-md border">
-                <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <Trash className="h-6 w-6 text-red-600 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground text-red-600">Delete Account</div>
-                </div>
+      <div className="w-full p-6">
+        <div className="mx-auto flex w-full max-w-[860px] flex-col gap-8">
+
+          {/* General */}
+          <section className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5 pb-1">
+              <div className="text-base font-medium">
+                General
               </div>
-              <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
+
+              <div className="text-xs text-gray-500">
+                Manage your basic profile information
               </div>
             </div>
-           </div>
-        </div>
 
-        <div className="flex flex-col gap-2">
-           <div className="flex flex-col gap-0.5 pb-1">
-            <div className="text-base font-medium">Notification Settings</div>
-            <div className="text-xs">Important account notifications and reminders cannot be turned off</div>
-           </div>
-           <div className="flex w-full flex-col overflow-hidden rounded-md border">
-              <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <CalendarClock className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
+            <div className="flex w-full flex-col overflow-hidden rounded-lg border">
+
+              {/* Name */}
+              <button
+                type="button"
+                onClick={() => setEditingField("name")}
+                className="
+                  flex w-full items-center
+                  justify-between gap-4
+                  border-b px-6 py-5
+                  text-left
+                  hover:bg-gray-50
+                "
+              >
+                <div className="flex flex-1 items-start gap-3">
+                  <User className="h-6 w-6 text-gray-400" />
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-base font-medium">
+                      Name
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      {fullName}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Booking Updates</div>
+
+                <ArrowRight className="h-6 w-6 text-gray-400" />
+              </button>
+
+              {/* Email */}
+              <div
+                className="
+                  flex w-full items-center
+                  justify-between gap-4
+                  border-b px-6 py-5
+                "
+              >
+                <div className="flex flex-1 items-start gap-3">
+                  <Mail className="h-6 w-6 text-gray-400" />
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-base font-medium">
+                      Email
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      {profile.email ?? "Not set"}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-             </div>
-              <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <Megaphone className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
+
+              {/* Phone */}
+              <button
+                type="button"
+                onClick={() => setEditingField("phone")}
+                className="
+                  flex w-full items-center
+                  justify-between gap-4
+                  border-b px-6 py-5
+                  text-left
+                  hover:bg-gray-50
+                "
+              >
+                <div className="flex flex-1 items-start gap-3">
+                  <Phone className="h-6 w-6 text-gray-400" />
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-base font-medium">
+                      Phone
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      {profile.phone ?? "Not set"}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Promotions</div>
+
+                <ArrowRight className="h-6 w-6 text-gray-400" />
+              </button>
+
+              {/* Password */}
+              <button
+                type="button"
+                className="
+                  flex w-full items-center
+                  justify-between gap-4
+                  px-6 py-5
+                  text-left
+                  hover:bg-gray-50
+                "
+              >
+                <div className="flex flex-1 items-start gap-3">
+                  <KeyRound className="h-6 w-6 text-gray-400" />
+
+                  <div className="text-base font-medium">
+                    Password
+                  </div>
                 </div>
-              </div>
-              <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-             </div>
-              <div className="flex w-full items-center justify-between gap-4 border-b border-sd-border px-6 py-5 last:border-none cursor-pointer hover:bg-sd-accent">
-              <div className="flex flex-1 items-start gap-3">
-                <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 mt-0.5 text-sd-muted-foreground">
-                  <UsersRound className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2" />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-medium text-sd-foreground">Customer Surveys</div>
-                </div>
-              </div>
-              <div className="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4 text-sd-muted-foreground">
-                <ArrowRight className="h-6 w-6 absolute -translate-x-1/2 -translate-y-1/2 align-[-0.125em] left-1/2 top-1/2"/>
-              </div>
-             </div>
-           </div>
-           
+
+                <ArrowRight className="h-6 w-6 text-gray-400" />
+              </button>
+
+            </div>
+          </section>
+
+          {/* Privacy Settings */}
+          {/* Keep your existing section here */}
+
+          {/* Notification Settings */}
+          {/* Keep your existing section here */}
+
         </div>
       </div>
-    </div>
+
+      {editingField && (
+        <EditFieldModal
+          field={editingField}
+          profile={profile}
+          onClose={() => setEditingField(null)}
+        />
+      )}
     </main>
-   
-  )
+  );
+}
+
+function EditFieldModal({
+  field,
+  profile,
+  onClose,
+}: {
+  field: "name" | "phone";
+  profile: UserProfile;
+  onClose: () => void;
+}) {
+  const {
+    mutate: updateProfile,
+    isPending,
+    error: updateError,
+  } = useUpdateProfile();
+
+  const nameForm = useForm<NameForm>({
+    resolver: zodResolver(profileNameSchema),
+
+    defaultValues: {
+      first_name: profile.first_name ?? "",
+      last_name: profile.last_name ?? "",
+    },
+  });
+
+  const phoneForm = useForm<PhoneForm>({
+    resolver: zodResolver(profilePhoneSchema),
+
+    defaultValues: {
+      phone: profile.phone ?? "",
+    },
+  });
+
+  const handleNameSubmit = (data: NameForm) => {
+    updateProfile(
+      {
+        first_name: data.first_name,
+        last_name: data.last_name,
+      },
+      {
+        onSuccess: onClose,
+      }
+    );
+  };
+
+  const handlePhoneSubmit = (data: PhoneForm) => {
+    updateProfile(
+      {
+        phone: data.phone,
+      },
+      {
+        onSuccess: onClose,
+      }
+    );
+  };
+
+  return (
+    <div
+      className="
+        fixed inset-0 z-50
+        flex items-center justify-center
+        bg-black/40 p-4
+      "
+      onClick={onClose}
+    >
+      <div
+        className="
+          w-full max-w-sm
+          rounded-2xl bg-white
+          p-6 shadow-xl
+        "
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            Edit {field === "name" ? "Name" : "Phone"}
+          </h2>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5 text-gray-400" />
+          </button>
+        </div>
+
+        {field === "name" ? (
+          <form
+            onSubmit={nameForm.handleSubmit(handleNameSubmit)}
+            className="flex flex-col gap-3"
+          >
+            <div>
+              <input
+                {...nameForm.register("first_name")}
+                placeholder="First name"
+                autoComplete="given-name"
+                className="
+                  h-11 w-full rounded-xl
+                  border border-gray-300
+                  px-4 text-sm
+                  outline-none
+                  focus:border-[#879b7b]
+                "
+              />
+
+              {nameForm.formState.errors.first_name && (
+                <p className="mt-1 text-xs text-red-500">
+                  {
+                    nameForm.formState.errors.first_name
+                      .message
+                  }
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                {...nameForm.register("last_name")}
+                placeholder="Last name"
+                autoComplete="family-name"
+                className="
+                  h-11 w-full rounded-xl
+                  border border-gray-300
+                  px-4 text-sm
+                  outline-none
+                  focus:border-[#879b7b]
+                "
+              />
+
+              {nameForm.formState.errors.last_name && (
+                <p className="mt-1 text-xs text-red-500">
+                  {
+                    nameForm.formState.errors.last_name
+                      .message
+                  }
+                </p>
+              )}
+            </div>
+
+            {updateError && (
+              <p className="text-xs text-red-500">
+                {updateError instanceof Error
+                  ? updateError.message
+                  : "Failed to update profile."}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="
+                mt-2 h-11 w-full
+                rounded-full
+                bg-[#879b7b]
+                text-sm font-medium text-white
+                hover:bg-[#748a68]
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
+            >
+              {isPending ? "Saving..." : "Save"}
+            </button>
+          </form>
+        ) : (
+          <form
+            onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}
+            className="flex flex-col gap-3"
+          >
+            <div>
+              <input
+                {...phoneForm.register("phone")}
+                type="tel"
+                placeholder="Phone number"
+                autoComplete="tel"
+                className="
+                  h-11 w-full rounded-xl
+                  border border-gray-300
+                  px-4 text-sm
+                  outline-none
+                  focus:border-[#879b7b]
+                "
+              />
+
+              {phoneForm.formState.errors.phone && (
+                <p className="mt-1 text-xs text-red-500">
+                  {phoneForm.formState.errors.phone.message}
+                </p>
+              )}
+            </div>
+
+            {updateError && (
+              <p className="text-xs text-red-500">
+                {updateError instanceof Error
+                  ? updateError.message
+                  : "Failed to update profile."}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="
+                mt-2 h-11 w-full
+                rounded-full
+                bg-[#879b7b]
+                text-sm font-medium text-white
+                hover:bg-[#748a68]
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
+            >
+              {isPending ? "Saving..." : "Save"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
 }

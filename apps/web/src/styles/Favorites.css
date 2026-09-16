@@ -221,3 +221,18 @@
   color: #f26d6d;
   border-bottom-color: #f26d6d;
 }
+.booking-review-btn {
+  background: #f16c6c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+.booking-review-btn:hover {
+  background: #e05a5a;
+}

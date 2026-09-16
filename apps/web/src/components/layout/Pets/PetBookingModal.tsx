@@ -1,104 +1,171 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Pet } from "@/components/layout/Pets/pets";
+import type { Pet } from "@repo/api";
 import "@/styles/PetBookingModal.css";
-
-const PRICE_BY_CATEGORY: Record<string, number> = {
-  Cat: 250,
-  Dog: 280,
-  "Guinea Pig": 180,
-  Rabbit: 200,
-};
 
 interface Props {
   pet: Pet | null;
   onClose: () => void;
 }
 
-export default function PetBookingModal({ pet, onClose }: Props) {
+export default function PetBookingModal({
+  pet,
+  onClose,
+}: Props) {
   const navigate = useNavigate();
-  const [days, setDays] = useState(1);
-
-  useEffect(() => {
-    setDays(1);
-  }, [pet]);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+      }
     }
+
     document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+    };
   }, [onClose]);
 
-  if (!pet) return null;
+  if (!pet) {
+    return null;
+  }
 
-  const pricePerDay = PRICE_BY_CATEGORY[pet.category] ?? 220;
-  const total = pricePerDay * days;
+  const hourlyRate = pet.hourlyRate;
+  const isAvailable = pet.status === "available";
+  const isBooked = pet.status === "booked";
 
   function handleBookNow() {
-    navigate("/booking", { state: { pet, days, total } });
+    // Extra protection in the UI
+    if (!isAvailable) {
+      return;
+    }
+
+    navigate("/booking", {
+      state: {
+        pet,
+      },
+    });
+
     onClose();
   }
 
   return (
-    <div className="pet-modal-backdrop" onClick={onClose}>
-      <div className="pet-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="pet-modal-close" aria-label="Close" onClick={onClose}>
+    <div
+      className="pet-modal-backdrop"
+      onClick={onClose}
+    >
+      <div
+        className="pet-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          type="button"
+          className="pet-modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
           ✕
         </button>
 
-        <div className="pet-modal-image">
-          <img src={pet.image} alt={pet.name} />
-        </div>
+        {/* Image */}
+        {pet.image && (
+          <div className="pet-modal-image">
+            <img
+              src={pet.image}
+              alt={pet.name}
+            />
+          </div>
+        )}
 
         <div className="pet-modal-details">
-          <p className="pet-modal-eyebrow">{pet.category}</p>
-          <h2>{pet.name}</h2>
-          <p className="pet-modal-breed">
-            {pet.breed}
-            {pet.age ? ` · ${pet.age}` : ""}
+          {/* Category */}
+          <p className="pet-modal-eyebrow">
+            {pet.category}
           </p>
 
-          <p className="pet-modal-price">₱{pricePerDay.toLocaleString()}.00 / day</p>
+          {/* Name */}
+          <h2>
+            {pet.name}
+          </h2>
 
+          {/* Breed */}
+          <p className="pet-modal-breed">
+            {pet.breed || "Unknown breed"}
+          </p>
+
+          {/* Price */}
+          <p className="pet-modal-price">
+            ₱{hourlyRate.toLocaleString()}.00 / hour
+          </p>
+
+          {/* Personality */}
           {pet.personality?.length > 0 && (
             <div className="pet-modal-tags">
               {pet.personality.map((trait) => (
-                <span key={trait} className="pet-modal-tag">
+                <span
+                  key={trait}
+                  className="pet-modal-tag"
+                >
                   {trait}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="pet-modal-stepper">
-            <span>Days</span>
-            <div className="pet-modal-stepper-controls">
+          {/* Booking button / status */}
+          {isAvailable ? (
+            <>
               <button
-                aria-label="Decrease days"
-                onClick={() => setDays((d) => Math.max(1, d - 1))}
+                type="button"
+                className="pet-modal-book-btn"
+                onClick={handleBookNow}
               >
-                −
+                Book Now
               </button>
-              <span>{days}</span>
-              <button aria-label="Increase days" onClick={() => setDays((d) => d + 1)}>
-                +
+
+              <p className="pet-modal-availability">
+                ✓ Available for booking
+              </p>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="pet-modal-book-btn disabled"
+                disabled
+              >
+                {isBooked
+                  ? "Currently Booked"
+                  : "Currently Unavailable"}
               </button>
-            </div>
-          </div>
 
-          <button className="pet-modal-book-btn" onClick={handleBookNow}>
-            Book Now — ₱{total.toLocaleString()}.00
-          </button>
+              <p className="pet-modal-unavailable">
+                {isBooked
+                  ? "✕ This pet is currently booked."
+                  : "✕ This pet is currently unavailable."}
+              </p>
+            </>
+          )}
 
-          <p className="pet-modal-availability">✓ Available for booking</p>
-
+          {/* Description */}
           <p className="pet-modal-description">
-            {pet.name} is a {pet.age ? pet.age.toLowerCase() + " " : ""}
-            {pet.breed}, known for being {pet.personality?.join(" and ").toLowerCase()}.
-            Every booking includes a food bowl, bed, and care instructions — just pick
-            your dates and we'll have {pet.name} ready to go.
+            {pet.name}
+            {pet.breed
+              ? ", known for being "
+              : " is "}
+            {pet.personality?.length
+              ? pet.personality
+                  .join(" and ")
+                  .toLowerCase()
+              : "friendly and caring"}
+            .
+            {" "}
+            Every booking includes a food bowl,
+            bed, and care instructions — just pick
+            your date, start time, and duration.
           </p>
         </div>
       </div>

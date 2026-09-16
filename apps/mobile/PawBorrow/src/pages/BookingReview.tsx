@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { IonContent, IonPage, IonIcon } from '@ionic/react';
 import { chevronBackOutline, calendarOutline, timeOutline, cardOutline, chevronForwardOutline } from 'ionicons/icons';
@@ -12,10 +12,32 @@ const BookingReview = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { addBooking } = useBookings();
-  const draft = location.state as DraftBooking | undefined;
+  const draftState = location.state as (DraftBooking & { selectedCardId?: string; returnTo?: string }) | undefined;
+  const draft = draftState as DraftBooking | undefined;
+  const returnTo = draftState?.returnTo ?? '/dashboard';
 
-  const [selectedCardId, setSelectedCardId] = useState(mockCards[0]?.id ?? '');
+  const [selectedCardId, setSelectedCardId] = useState(draftState?.selectedCardId ?? mockCards[0]?.id ?? '');
   const selectedCard = mockCards.find((c) => c.id === selectedCardId);
+
+  useEffect(() => {
+    if (draftState?.selectedCardId) {
+      setSelectedCardId(draftState.selectedCardId);
+    }
+  }, [draftState?.selectedCardId]);
+
+  const handleBack = () => {
+    navigate(returnTo, { replace: true });
+  };
+
+  const handlePaymentSelect = () => {
+    navigate('/payment-methods', {
+      state: {
+        draft,
+        selectedCardId,
+        returnTo,
+      },
+    });
+  };
 
   if (!draft) {
     return (
@@ -40,7 +62,7 @@ const BookingReview = () => {
       <IonContent fullscreen className="booking-review-content">
         <div className="booking-review">
           <header className="booking-review-header">
-            <button className="booking-review-back" aria-label="Go back" onClick={() => navigate(-1)}>
+            <button className="booking-review-back" aria-label="Go back" onClick={handleBack}>
               <IonIcon icon={chevronBackOutline} />
             </button>
             <h1>Confirm Booking</h1>
@@ -85,7 +107,7 @@ const BookingReview = () => {
               <IonIcon icon={chevronForwardOutline} className="booking-review-payment-arrow" />
             </button>
           ) : (
-            <button className="booking-review-payment" onClick={() => navigate('/payment-methods')}>
+            <button className="booking-review-payment" onClick={handlePaymentSelect}>
               <span className="booking-review-payment-icon"><IonIcon icon={cardOutline} /></span>
               <div className="booking-review-payment-info">
                 <p className="booking-review-payment-brand">{selectedCard?.brand}</p>
@@ -101,7 +123,7 @@ const BookingReview = () => {
         </div>
 
         <div className="booking-review-footer">
-          <button className="booking-review-cancel" onClick={() => navigate(-1)}>
+          <button className="booking-review-cancel" onClick={handleBack}>
             Back
           </button>
           <button className="booking-review-confirm" onClick={handleConfirm} disabled={!selectedCard}>

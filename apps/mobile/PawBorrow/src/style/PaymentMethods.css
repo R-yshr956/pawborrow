@@ -51,9 +51,19 @@
   align-items: center;
   gap: 14px;
   background: #ffffff;
+  border: 2px solid transparent;
   border-radius: 16px;
   box-shadow: 0 8px 20px rgba(22, 34, 51, 0.08);
   padding: 14px 16px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.payment-card.is-selected {
+  border-color: #f5821f;
+  background: #fff7f2;
 }
 
 .payment-card-icon {

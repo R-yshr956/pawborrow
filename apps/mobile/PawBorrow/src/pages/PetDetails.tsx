@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { IonContent, IonPage, IonIcon } from '@ionic/react';
 import { chevronBackOutline, calendarOutline, locationOutline } from 'ionicons/icons';
 import { pets } from '../data/pets';
@@ -9,6 +9,7 @@ import '../style/PetDetails.css';
 const PetDetails = () => {
   const { petId } = useParams<{ petId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const pet = pets.find((p) => p.id === petId);
 
   const [selectedDay, setSelectedDay] = useState(pet?.availableDays[2]?.date ?? '');
@@ -29,20 +30,21 @@ const PetDetails = () => {
   }
 
   const handleBookNow = () => {
-  const dayInfo = pet.availableDays.find((d) => d.date === selectedDay);
-  navigate('/booking-review', {
-    state: {
-      type: 'pet',
-      category: 'Cat',
-      name: pet.name,
-      subtitle: pet.breed,
-      detail: `Age: ${pet.age}`,
-      photo: pet.image,
-      date: dayInfo ? `${dayInfo.day}, ${dayInfo.date} ${pet.availableMonth}` : pet.availableMonth,
-      time: selectedTime,
-    },
-  });
-};
+    const dayInfo = pet.availableDays.find((d) => d.date === selectedDay);
+    navigate('/booking-review', {
+      state: {
+        type: 'pet',
+        category: pet.category,
+        name: pet.name,
+        subtitle: pet.breed,
+        detail: `Age: ${pet.age}`,
+        photo: pet.image,
+        date: dayInfo ? `${dayInfo.day}, ${dayInfo.date} ${pet.availableMonth}` : pet.availableMonth,
+        time: selectedTime,
+        returnTo: location.pathname,
+      },
+    });
+  };
 
   return (
     <IonPage>

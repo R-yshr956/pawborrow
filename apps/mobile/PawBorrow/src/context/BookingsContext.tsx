@@ -19,6 +19,7 @@ export interface AppNotification {
   type: 'confirmed' | 'cancelled';
   message: string;
   createdAt: string;   // real calendar date this event happened, e.g. "13 February"
+  isRead: boolean;
 }
 
 interface BookingsContextValue {
@@ -26,6 +27,7 @@ interface BookingsContextValue {
   notifications: AppNotification[];
   addBooking: (booking: Omit<Booking, 'id' | 'status'>) => Booking;
   cancelBooking: (id: string) => void;
+  markNotificationsAsRead: () => void;
 }
 
 const BookingsContext = createContext<BookingsContextValue | undefined>(undefined);
@@ -47,6 +49,7 @@ export const BookingsProvider = ({ children }: { children: ReactNode }) => {
         type: 'confirmed',
         message: `Your booking with ${newBooking.name} is confirmed for ${newBooking.date} at ${newBooking.time}.`,
         createdAt: formatToday(),
+        isRead: false,
       },
       ...prev,
     ]);
@@ -65,14 +68,19 @@ export const BookingsProvider = ({ children }: { children: ReactNode }) => {
           type: 'cancelled',
           message: `Your booking with ${cancelled.name} was cancelled.`,
           createdAt: formatToday(),
+          isRead: false,
         },
         ...prev,
       ]);
     }
   };
 
+  const markNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })));
+  };
+
   return (
-    <BookingsContext.Provider value={{ bookings, notifications, addBooking, cancelBooking }}>
+    <BookingsContext.Provider value={{ bookings, notifications, addBooking, cancelBooking, markNotificationsAsRead }}>
       {children}
     </BookingsContext.Provider>
   );

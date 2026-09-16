@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "@radix-ui/react-accordion": "^1.2.20",
     "@repo/api": "workspace:*",
     "@tanstack/react-query": "^5.102.8",
     "framer-motion": "^13.1.1",
