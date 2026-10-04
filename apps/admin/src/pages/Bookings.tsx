@@ -306,7 +306,7 @@ export default function Bookings() {
 
       <div className="p-8">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-base font-bold text-gray-800">Bookings</h2>
+          <h2 className="mb-6 text-base font-bold text-gray-800">BOOKINGS</h2>
 
           <div className="mb-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
             <div className="flex items-center gap-3">

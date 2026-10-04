@@ -35,10 +35,10 @@ interface PetRecord {
 }
 
 const CATEGORY_COLORS = [
-  "#FB923C",
-  "#38BDF8",
-  "#818CF8",
-  "#1E293B",
+  "#f6ba29",
+  "#10B981",
+  "#7ccce4",
+  "#f5787b",
   "#10B981",
   "#F472B6",
 ];
