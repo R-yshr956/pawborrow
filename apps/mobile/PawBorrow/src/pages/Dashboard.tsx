@@ -1,90 +1,32 @@
+import { useEffect, useMemo, useState } from "react";
+import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import {
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  IonContent,
-  IonPage,
-  IonIcon,
-} from "@ionic/react";
-
-import { notificationsOutline } from "ionicons/icons";
-
+  arrowForwardOutline,
+  heartOutline,
+  notificationsOutline,
+  paw,
+} from "ionicons/icons";
 import { useNavigate } from "react-router-dom";
-
-import {
-  useBookings,
-  usePets,
-} from "@repo/api";
-
-import SearchBar from "../components/SearchBar";
-import NotificationBadge from "../components/NotificationBadge";
-
-import { matchesSearch } from "../../public/images/utils/search";
+import { useBookings, usePets } from "@repo/api";
 
 import { useAuth } from "../context/AuthContext";
 
-import "../style/Dashboard.css";
+const heroPhoto = "/images/dashboard/Ca4.png";
+const fallbackImage = "/images/logo.png";
 
-// ========================================
-// Default Images
-// ========================================
-
-const defaultAvatar =
-  "/images/dashboard/avatar-sarah.png";
-
-const petsBanner =
-  "/images/dashboard/pets-banner.png";
-
-const catPhoto =
-  "/images/dashboard/cat.png";
-
-const dogPhoto =
-  "/images/pets/Dogs/Pug/Edgar.jpg";
-
-const rabbitPhoto =
-  "/images/pets/Rabbits/Flemish/Maple.jpg";
-
-const capybaraPhoto =
-  "/images/pets/Capybara/Less/Carlos.jpg";
-
-const bookNowPhoto =
-  "/images/dashboard/book-now.png";
-
-const communityPhoto =
-  "/images/dashboard/community.png";
-
-const fallbackImage =
-  "/images/logo.png";
-
-// ========================================
-// Category Images
-// ========================================
-
-const categoryImages: Record<
-  string,
-  string
-> = {
-  cat: catPhoto,
-  cats: catPhoto,
-
-  dog: dogPhoto,
-  dogs: dogPhoto,
-
-  rabbit: rabbitPhoto,
-  rabbits: rabbitPhoto,
-
-  capybara: capybaraPhoto,
-  capybaras: capybaraPhoto,
-
-  "guinea pig": capybaraPhoto,
-  "guinea pigs": capybaraPhoto,
+const categoryImages: Record<string, string> = {
+  cat: "/images/dashboard/cat.png",
+  cats: "/images/dashboard/cat.png",
+  dog: "/images/pets/Dogs/Pug/Edgar.jpg",
+  dogs: "/images/pets/Dogs/Pug/Edgar.jpg",
+  rabbit: "/images/pets/Rabbits/Flemish/Maple.jpg",
+  rabbits: "/images/pets/Rabbits/Flemish/Maple.jpg",
+  capybara: "/images/pets/Capybara/Less/Carlos.jpg",
+  capybaras: "/images/pets/Capybara/Less/Carlos.jpg",
 };
 
-// ========================================
-// Create URL Slug
-// ========================================
+const sectionLink =
+  "flex shrink-0 items-center gap-1 text-xs font-bold text-froly-400 transition hover:text-froly-600";
 
 function createSlug(value: string) {
   return value
@@ -95,58 +37,25 @@ function createSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-// ========================================
-// Greeting
-// ========================================
-
-function getGreeting() {
-  const hour = new Date().getHours();
-
-  if (hour < 12) {
-    return "Good Morning!";
-  }
-
-  if (hour < 18) {
-    return "Good Afternoon!";
-  }
-
-  return "Good Evening!";
+function getGreeting(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 21) return "Good evening";
+  return "Good night";
 }
-
-// ========================================
-// Dashboard
-// ========================================
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-
-  // ========================================
-  // Authenticated User
-  // ========================================
-  //
-  // `user` is already the profile loaded
-  // from the `user_profiles` table.
-  //
-  // Available properties:
-  //
-  // user.firstName
-  // user.lastName
-  // user.fullName
-  // user.avatarUrl
-  // user.email
-  //
-  // ========================================
-
   const { user } = useAuth();
+  const [now, setNow] = useState(() => new Date());
 
-  const [
-    searchTerm,
-    setSearchTerm,
-  ] = useState("");
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 60_000);
 
-  // ========================================
-  // Pets
-  // ========================================
+    return () => window.clearInterval(timer);
+  }, []);
 
   const {
     data: pets = [],
@@ -154,18 +63,7 @@ export const Dashboard = () => {
     isError: petsError,
   } = usePets();
 
-  // ========================================
-  // Bookings
-  // ========================================
-
-  const {
-    data: bookings = [],
-    isLoading: bookingsLoading,
-  } = useBookings();
-
-  // ========================================
-  // Create Categories From Pets
-  // ========================================
+  const { data: bookings = [] } = useBookings();
 
   const categories = useMemo(() => {
     const categoryMap = new Map<
@@ -179,511 +77,337 @@ export const Dashboard = () => {
     >();
 
     pets.forEach((pet) => {
-      const categoryName =
-        pet.category?.trim();
+      const categoryName = pet.category?.trim();
+      if (!categoryName) return;
 
-      if (!categoryName) {
-        return;
-      }
+      const key = categoryName.toLowerCase();
+      const existing = categoryMap.get(key);
 
-      const normalizedName =
-        categoryName.toLowerCase();
-
-      const existing =
-        categoryMap.get(
-          normalizedName,
-        );
-
-      // Category already exists
       if (existing) {
         existing.count += 1;
-        return;
-      }
-
-      // New category
-      categoryMap.set(
-        normalizedName,
-        {
-          id: createSlug(
-            categoryName,
-          ),
-
+      } else {
+        categoryMap.set(key, {
+          id: createSlug(categoryName),
           label: categoryName,
-
-          photo:
-            categoryImages[
-              normalizedName
-            ] ??
-            pet.image ??
-            capybaraPhoto,
-
+          photo: categoryImages[key] || pet.image || fallbackImage,
           count: 1,
-        },
-      );
+        });
+      }
     });
 
-    return Array.from(
-      categoryMap.values(),
-    ).sort(
-      (first, second) =>
-        first.label.localeCompare(
-          second.label,
-        ),
+    return Array.from(categoryMap.values()).sort((a, b) =>
+      a.label.localeCompare(b.label),
     );
   }, [pets]);
 
-  // ========================================
-  // Search Categories
-  // ========================================
+  const shuffledPets = useMemo(() => {
+    const result = [...pets];
 
-  const filteredCategories =
-    categories.filter(
-      (category) =>
-        matchesSearch(
-          category.label,
-          searchTerm,
-        ),
-    );
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
 
-  // ========================================
-  // Notification Count
-  // ========================================
-  //
-  // The booking API currently has no
-  // read/unread notification field.
-  //
-  // So we show pending + confirmed
-  // bookings as the badge count.
-  //
-  // ========================================
+      [result[index], result[randomIndex]] = [
+        result[randomIndex],
+        result[index],
+      ];
+    }
 
-  const notificationCount =
-    bookings.filter((booking) => {
-      const status =
-        booking.status.toLowerCase();
+    return result;
+  }, [pets]);
 
-      return (
-        status === "pending" ||
-        status === "confirmed"
-      );
-    }).length;
+  const visiblePets = shuffledPets.slice(0, 6);
 
-  // ========================================
-  // USER PROFILE
-  // ========================================
-  //
-  // Data comes from:
-  //
-  // public.user_profiles
-  //
-  // first_name
-  // last_name
-  // avatar_url
-  //
-  // AuthContext converts them into:
-  //
-  // firstName
-  // lastName
-  // avatarUrl
-  //
-  // ========================================
+  const upcomingBookings = bookings.filter((booking) =>
+    ["pending", "confirmed"].includes((booking.status ?? "").toLowerCase()),
+  );
 
-  const displayName =
-    [
-      user?.firstName,
-      user?.lastName,
-    ]
-      .filter(Boolean)
-      .join(" ") ||
-    "PawBorrow User";
-
-  const avatar =
-    user?.avatarUrl ||
-    defaultAvatar;
-
-  // ========================================
-  // Render
-  // ========================================
+  const notificationCount = upcomingBookings.length;
+  const greeting = getGreeting(now.getHours());
+  const firstName = user?.firstName?.trim() || "Pet Lover";
 
   return (
     <IonPage>
-      <IonContent
-        fullscreen
-        className="dashboard-content"
-      >
-        <div className="dashboard">
-
-          {/* ==================================
-              HEADER
-          ================================== */}
-
-          <header className="dashboard-header">
-
-            {/* User Information */}
-
-            <div className="dashboard-user">
-
+      <IonContent fullscreen className="[--background:#ffffff]">
+        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-[calc(14px+env(safe-area-inset-top))] font-sans text-[#272522] sm:px-6 sm:pt-[calc(18px+env(safe-area-inset-top))]">
+          <header className="mb-5 flex min-h-10 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
               <button
                 type="button"
-                className="dashboard-avatar-btn"
-                aria-label="Go to profile"
-                onClick={() =>
-                  navigate("/profile")
-                }
+                aria-label="Dashboard home"
+                onClick={() => navigate("/dashboard")}
+                className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-froly-400"
               >
-                <img
-                  className="dashboard-avatar"
-                  src={avatar}
-                  alt={`${displayName}'s profile`}
-                  onError={(event) => {
-                    event.currentTarget.onerror =
-                      null;
-
-                    event.currentTarget.src =
-                      defaultAvatar;
-                  }}
+                <IonIcon
+                  icon={paw}
+                  aria-hidden="true"
+                  className="text-[21px]"
                 />
               </button>
 
-              <div>
-
-                <p className="dashboard-greeting">
-                  Hello, {displayName}
+              <div className="min-w-0 leading-tight">
+                <p className="m-0 truncate text-[14px] font-bold text-[#272522]">
+                  Hello, {firstName}!
                 </p>
-
-                <p className="dashboard-subgreeting">
-                  {getGreeting()}
+                <p className="m-0 mt-0.5 text-[10px] text-stone-500">
+                  {greeting}!
                 </p>
-
               </div>
-
             </div>
 
-            {/* Notifications */}
-
-            <button
-              type="button"
-              className="dashboard-icon-btn"
-              aria-label="Notifications"
-              onClick={() =>
-                navigate(
-                  "/notification",
-                )
-              }
-            >
-              <div className="dashboard-icon-wrap">
-
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                aria-label="Liked pets"
+                onClick={() => navigate("/liked-pets")}
+                className="grid h-8 w-8 place-items-center rounded-full text-[#272522]"
+              >
                 <IonIcon
-                  icon={
-                    notificationsOutline
-                  }
+                  icon={heartOutline}
+                  aria-hidden="true"
+                  className="text-[19px]"
+                />
+              </button>
+
+              <button
+                type="button"
+                aria-label={`Notifications, ${notificationCount} booking updates`}
+                onClick={() => navigate("/notification")}
+                className="relative grid h-8 w-8 place-items-center rounded-full text-[#272522]"
+              >
+                <IonIcon
+                  icon={notificationsOutline}
+                  aria-hidden="true"
+                  className="text-[19px]"
                 />
 
-                <NotificationBadge
-                  count={
-                    notificationCount
-                  }
-                  ariaLabel="Booking notifications"
-                />
-
-              </div>
-            </button>
-
+                {notificationCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-0 top-0 h-2 w-2 rounded-full border border-white bg-[#F45B5B]"
+                  />
+                )}
+              </button>
+            </div>
           </header>
 
-          {/* ==================================
-              SEARCH
-          ================================== */}
+          <section className="relative isolate h-[150px] overflow-hidden rounded-xl bg-[#F3931C] sm:h-[190px]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-3 -top-3 h-full w-[180px] opacity-25 sm:w-[260px]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle, #FFD17C 6px, transparent 6.5px)",
+                backgroundSize: "19px 19px",
+              }}
+            />
 
-          <SearchBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search pet categories"
-          />
+            <div className="relative z-10 w-[57%] pl-5 pt-5 text-white sm:pl-7 sm:pt-7">
+              <h2 className="m-0 text-[24px] font-semibold leading-tight tracking-tight sm:text-[30px]">
+                Book now!
+              </h2>
 
-          {/* ==================================
-              PROMO BANNER
-          ================================== */}
-
-          <div className="dashboard-promo">
-
-            <div className="dashboard-promo-text">
-
-              <p className="dashboard-promo-title">
-                In Love with Pets?
+              <p className="mt-3 text-[11px] leading-[17px] text-white/90 sm:text-sm sm:leading-5">
+                See how you can find friends
+                <br />
+                who are a match for you
               </p>
-
-              <p className="dashboard-promo-subtitle">
-                Find a companion to borrow
-                today.
-              </p>
-
             </div>
 
             <img
-              className="dashboard-promo-photo"
-              src={petsBanner}
-              alt="Pets"
+              src={heroPhoto}
+              alt="A fluffy dog wearing a blue shirt"
+              className="pointer-events-none absolute bottom-0 right-0 z-20 h-full w-[43%] object-contain object-bottom sm:right-5"
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = fallbackImage;
+              }}
             />
+          </section>
 
-          </div>
-
-          {/* ==================================
-              CATEGORY
-          ================================== */}
-
-          <section className="dashboard-section">
-
-            <div className="dashboard-section-header">
-
-              <h2>
-                Category
-              </h2>
+          <section className="mt-8">
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Browse Categories
+                </h2>
+                <p className="mt-1 text-[11px] text-stone-400">
+                  Discover a different mix of companions
+                </p>
+              </div>
 
               <button
                 type="button"
-                className="dashboard-see-all"
-                onClick={() =>
-                  navigate(
-                    "/pet-category",
-                  )
-                }
+                onClick={() => navigate("/pet-category")}
+                className={sectionLink}
               >
-                See All
+                View all
+                <IonIcon icon={arrowForwardOutline} aria-hidden="true" />
               </button>
-
             </div>
-
-            {/* Loading */}
 
             {petsLoading && (
-              <p>
-                Loading pet categories...
+              <p role="status" className="my-3 text-xs text-stone-400">
+                Loading pets...
               </p>
             )}
-
-            {/* Error */}
 
             {petsError && (
-              <p>
-                Failed to load pet
-                categories.
+              <p role="alert" className="my-3 text-xs text-red-600">
+                We could not load the pet categories.
               </p>
             )}
 
-            {/* No Categories */}
+            {!petsLoading && !petsError && categories.length === 0 && (
+              <p className="my-3 text-xs text-stone-400">
+                No categories found.
+              </p>
+            )}
 
-            {!petsLoading &&
-              !petsError &&
-              filteredCategories.length ===
-                0 && (
-                <p>
-                  No pet categories found.
-                </p>
-              )}
+            {!petsLoading && !petsError && categories.length > 0 && (
+              <div className="grid snap-x auto-cols-[82px] grid-flow-col gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(88px,1fr)] sm:gap-4">
+                {categories.slice(0, 6).map((category) => (
+                  <button
+                    type="button"
+                    key={category.id}
+                    onClick={() => navigate(`/breed-selection/${category.id}`)}
+                    className="flex min-w-0 snap-start flex-col items-center text-[#272522]"
+                  >
+                    <span className="h-[66px] w-[66px] overflow-hidden rounded-full border border-stone-200 bg-white p-1 shadow-sm sm:h-[74px] sm:w-[74px]">
+                      <img
+                        src={category.photo}
+                        alt=""
+                        className="h-full w-full rounded-full object-cover"
+                        onError={(event) => {
+                          event.currentTarget.onerror = null;
+                          event.currentTarget.src = fallbackImage;
+                        }}
+                      />
+                    </span>
 
-            {/* Categories */}
+                    <strong className="mt-2 max-w-full truncate text-xs">
+                      {category.label}
+                    </strong>
 
-            {!petsLoading &&
-              !petsError &&
-              filteredCategories.length >
-                0 && (
-                <div className="dashboard-categories">
-
-                  {filteredCategories.map(
-                    (category) => (
-                      <button
-                        type="button"
-                        className="dashboard-category"
-                        key={category.id}
-                        onClick={() =>
-                          navigate(
-                            `/breed-selection/${category.id}`,
-                          )
-                        }
-                      >
-
-                        <img
-                          src={
-                            category.photo ||
-                            fallbackImage
-                          }
-                          alt={
-                            category.label
-                          }
-                          onError={(
-                            event,
-                          ) => {
-                            event.currentTarget.onerror =
-                              null;
-
-                            event.currentTarget.src =
-                              fallbackImage;
-                          }}
-                        />
-
-                        <span>
-                          {
-                            category.label
-                          }
-                        </span>
-
-                        <small>
-                          {
-                            category.count
-                          }{" "}
-                          {category.count ===
-                          1
-                            ? "pet"
-                            : "pets"}
-                        </small>
-
-                      </button>
-                    ),
-                  )}
-
-                </div>
-              )}
-
+                    <small className="mt-0.5 text-[9px] text-stone-400">
+                      {category.count} pets
+                    </small>
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
 
-          {/* ==================================
-              BOOK NOW
-          ================================== */}
-
-          <section className="dashboard-section">
-
-            <h2>
-              Book Now
-            </h2>
-
-            <div className="dashboard-card">
-
-              <div className="dashboard-card-text">
-
-                <p>
-                  Find an available
-                  companion and create
-                  a booking.
+          <section className="mt-8">
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Our PawPals
+                </h2>
+                <p className="mt-1 text-[11px] text-stone-400">
+                  Discover different companions
                 </p>
-
-                <button
-                  type="button"
-                  className="dashboard-card-btn"
-                  onClick={() =>
-                    navigate(
-                      "/pet-category",
-                    )
-                  }
-                >
-                  See Pets
-                </button>
-
               </div>
 
-              <img
-                src={bookNowPhoto}
-                alt="Book a pet"
-              />
-
+              <button
+                type="button"
+                onClick={() => navigate("/pet-category")}
+                className={sectionLink}
+              >
+                View all
+                <IonIcon icon={arrowForwardOutline} aria-hidden="true" />
+              </button>
             </div>
 
-          </section>
+            {petsLoading && (
+              <p role="status" className="my-3 text-xs text-stone-400">
+                Loading companions...
+              </p>
+            )}
 
-          {/* ==================================
-              MY BOOKINGS
-          ================================== */}
+            {petsError && (
+              <p role="alert" className="my-3 text-xs text-red-600">
+                We could not load the pets.
+              </p>
+            )}
 
-          <section className="dashboard-section">
+            {!petsLoading && !petsError && visiblePets.length === 0 && (
+              <p className="my-3 text-xs text-stone-400">No pets found.</p>
+            )}
 
-            <h2>
-              My Bookings
-            </h2>
+            {!petsLoading && !petsError && visiblePets.length > 0 && (
+              <div className="grid snap-x auto-cols-[47%] grid-flow-col gap-4 overflow-x-auto px-px pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(190px,24%)]">
+                {visiblePets.map((pet, index) => (
+                  <article
+                    key={String(pet.id ?? `${pet.name}-${index}`)}
+                    className="group snap-start overflow-hidden rounded-[18px] border border-stone-200 bg-white shadow-[0_10px_25px_rgba(59,46,35,0.07)]"
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          `/breed-selection/${createSlug(
+                            pet.category || "pets",
+                          )}`,
+                        )
+                      }
+                      aria-label={`View ${pet.name || "pet"}`}
+                      className="block h-36 w-full overflow-hidden sm:h-44"
+                    >
+                      <img
+                        src={pet.image || fallbackImage}
+                        alt={pet.name || "Pet"}
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 motion-reduce:transition-none"
+                        onError={(event) => {
+                          event.currentTarget.onerror = null;
+                          event.currentTarget.src = fallbackImage;
+                        }}
+                      />
+                    </button>
 
-            <div className="dashboard-card">
+                    <div className="flex items-center justify-between gap-2.5 px-3 py-3">
+                      <strong className="truncate text-sm">
+                        {pet.name || "New friend"}
+                      </strong>
 
-              <div className="dashboard-card-text">
-
-                <p>
-                  {bookingsLoading
-                    ? "Loading your bookings..."
-                    : `You have ${
-                        bookings.length
-                      } ${
-                        bookings.length ===
-                        1
-                          ? "booking"
-                          : "bookings"
-                      }.`}
-                </p>
-
-                <button
-                  type="button"
-                  className="dashboard-card-btn"
-                  onClick={() =>
-                    navigate(
-                      "/my-bookings",
-                    )
-                  }
-                >
-                  View Bookings
-                </button>
-
+                      <span className="shrink-0 text-[10px] font-bold text-froly-500">
+                        {pet.category || "Pet"}
+                      </span>
+                    </div>
+                  </article>
+                ))}
               </div>
-
-              <img
-                src={communityPhoto}
-                alt="My bookings"
-              />
-
-            </div>
-
+            )}
           </section>
 
-          {/* ==================================
-              ABOUT US
-          ================================== */}
+          <section className="mt-7 flex flex-col items-start justify-between gap-5 rounded-[20px] bg-stone-800 px-6 py-6 text-white sm:flex-row sm:items-center">
+            <div>
+              <span className="text-[10px] font-extrabold tracking-[0.16em]">
+                MY BOOKINGS
+              </span>
 
-          <section className="dashboard-section">
+              <h2 className="my-1.5 text-xl font-bold">
+                {upcomingBookings.length === 0
+                  ? "Plan your next pet visit"
+                  : `${upcomingBookings.length} upcoming ${
+                      upcomingBookings.length === 1 ? "booking" : "bookings"
+                    }`}
+              </h2>
 
-            <h2>
-              About Us
-            </h2>
-
-            <div className="dashboard-card">
-
-              <div className="dashboard-card-text">
-
-                <p>
-                  Meet the team behind
-                  PawBorrow and our
-                  pet-first mission.
-                </p>
-
-                <button
-                  type="button"
-                  className="dashboard-card-btn"
-                  onClick={() =>
-                    navigate(
-                      "/about-us",
-                    )
-                  }
-                >
-                  See More
-                </button>
-
-              </div>
-
-              <img
-                src={communityPhoto}
-                alt="About us"
-              />
-
+              <p className="m-0 text-xs text-white/65">
+                Keep track of your scheduled visits and booking updates.
+              </p>
             </div>
 
+            <button
+              type="button"
+              onClick={() => navigate("/my-bookings")}
+              className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-extrabold text-orange-600 transition hover:bg-orange-50"
+            >
+              View bookings
+              <IonIcon icon={arrowForwardOutline} aria-hidden="true" />
+            </button>
           </section>
-
-        </div>
+        </main>
       </IonContent>
     </IonPage>
   );

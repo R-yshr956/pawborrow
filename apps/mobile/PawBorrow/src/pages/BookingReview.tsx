@@ -17,8 +17,8 @@ import {
 } from "ionicons/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  createBooking,
-  type CreateBookingInput,
+  completeMockCheckout,
+  type CompleteMockCheckoutInput,
 } from "@repo/api";
 
 import { mockCards } from "../data/paymentMethods";
@@ -128,15 +128,16 @@ const BookingReview = () => {
     setError(null);
     setIsSubmitting(true);
 
-    const input: CreateBookingInput = {
+    const input: CompleteMockCheckoutInput = {
       pet_id: draft.petId,
       reservation_date: draft.reservationDate,
       time_slot: draft.timeSlot,
       duration_minutes: draft.durationMinutes,
+      payment_method: selectedCard.brand,
     };
 
     try {
-      const result = await createBooking(input);
+      const result = await completeMockCheckout(input);
 
       /*
        * Supports a Supabase RPC returning either:
@@ -187,7 +188,7 @@ const BookingReview = () => {
       });
     } catch (err) {
       console.error(
-        "Failed to create booking:",
+        "Failed to complete mock checkout:",
         err,
       );
 
@@ -376,9 +377,8 @@ const BookingReview = () => {
           )}
 
           <p className="booking-review-note">
-            Please review your booking details
-            carefully. You can go back to change the
-            date or time before confirming.
+            This is a mock payment. No money will be charged.
+            Your booking is created only after you confirm.
           </p>
         </div>
 
@@ -401,8 +401,8 @@ const BookingReview = () => {
             }
           >
             {isSubmitting
-              ? "Booking..."
-              : "Confirm Booking"}
+              ? "Processing..."
+              : "Simulate Payment & Book"}
           </button>
         </div>
       </IonContent>

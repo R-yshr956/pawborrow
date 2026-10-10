@@ -8,13 +8,9 @@ import {
 import { chevronBackOutline } from "ionicons/icons";
 import { useCategories } from "@repo/api";
 
-import SearchBar from "../components/SearchBar";
+import SearchBar from "./SearchBar";
 import "../style/PetCategory.css";
 
-/*
- * Files inside public are accessed using URLs
- * beginning with "/". They should not be imported.
- */
 const placeholderPhoto =
   "/images/utils/placeholder.png";
 
@@ -112,19 +108,6 @@ const PetCategory: React.FC = () => {
       >
         <div className="category">
           <header className="category-header">
-            <button
-              type="button"
-              className="category-back"
-              aria-label="Back to dashboard"
-              onClick={() =>
-                navigate("/dashboard")
-              }
-            >
-              <IonIcon
-                icon={chevronBackOutline}
-              />
-            </button>
-
             <h1>Pets</h1>
           </header>
 

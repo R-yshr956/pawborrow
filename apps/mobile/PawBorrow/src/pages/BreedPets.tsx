@@ -24,7 +24,7 @@ import {
   useRemoveLikedPet,
 } from "@repo/api";
 
-import SearchBar from "../components/SearchBar";
+import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import {
   matchesSearch,
