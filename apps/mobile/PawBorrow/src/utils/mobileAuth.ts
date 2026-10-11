@@ -88,15 +88,6 @@ export async function signInWithGoogleMobile(): Promise<void> {
     return;
   }
 
-  if (
-    import.meta.env.VITE_MOBILE_AUTH_PKCE !== "true"
-  ) {
-    throw new Error(
-      "Mobile authentication is not configured. " +
-        "Set VITE_MOBILE_AUTH_PKCE=true and rebuild the app.",
-    );
-  }
-
   const { data, error } =
     await supabase.auth.signInWithOAuth({
       provider: "google",

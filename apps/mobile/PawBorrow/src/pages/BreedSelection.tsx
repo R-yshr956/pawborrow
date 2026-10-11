@@ -106,7 +106,7 @@ const BreedSelection: React.FC = () => {
         <main
           className="
             mx-auto box-border min-h-full
-            w-full max-w-[480px]
+            w-full max-w-120
             px-[clamp(16px,4vw,24px)]
             pb-[calc(100px+env(safe-area-inset-bottom))]
             font-poppins
