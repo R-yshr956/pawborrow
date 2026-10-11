@@ -15,14 +15,10 @@ const heroPhoto = "/images/dashboard/Ca4.png";
 const fallbackImage = "/images/logo.png";
 
 const categoryImages: Record<string, string> = {
-  cat: "/images/dashboard/cat.png",
-  cats: "/images/dashboard/cat.png",
+  cat: "/images/pets/cats/American/Ruby.jpg",
   dog: "/images/pets/Dogs/Pug/Edgar.jpg",
-  dogs: "/images/pets/Dogs/Pug/Edgar.jpg",
   rabbit: "/images/pets/Rabbits/Flemish/Maple.jpg",
-  rabbits: "/images/pets/Rabbits/Flemish/Maple.jpg",
   capybara: "/images/pets/Capybara/Less/Carlos.jpg",
-  capybaras: "/images/pets/Capybara/Less/Carlos.jpg",
 };
 
 const sectionLink =
@@ -227,7 +223,7 @@ export const Dashboard = () => {
           <section className="mt-8">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold tracking-tight">
+                <h2 className="text-xl font-cherry text-froly-400 tracking-tight">
                   Browse Categories
                 </h2>
                 <p className="mt-1 text-[11px] text-stone-400">
@@ -300,7 +296,7 @@ export const Dashboard = () => {
           <section className="mt-8">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold tracking-tight">
+                <h2 className="text-xl font-cherry text-froly-400 tracking-tight">
                   Our PawPals
                 </h2>
                 <p className="mt-1 text-[11px] text-stone-400">
@@ -379,7 +375,7 @@ export const Dashboard = () => {
             )}
           </section>
 
-          <section className="mt-7 flex flex-col items-start justify-between gap-5 rounded-[20px] bg-stone-800 px-6 py-6 text-white sm:flex-row sm:items-center">
+          <section className="mt-7 flex flex-col items-start justify-between gap-5 rounded-[20px] bg-buttermilk-100 px-6 py-6 sm:flex-row sm:items-center">
             <div>
               <span className="text-[10px] font-extrabold tracking-[0.16em]">
                 MY BOOKINGS
@@ -393,7 +389,7 @@ export const Dashboard = () => {
                     }`}
               </h2>
 
-              <p className="m-0 text-xs text-white/65">
+              <p className="m-0 text-">
                 Keep track of your scheduled visits and booking updates.
               </p>
             </div>
@@ -401,7 +397,7 @@ export const Dashboard = () => {
             <button
               type="button"
               onClick={() => navigate("/my-bookings")}
-              className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-extrabold text-orange-600 transition hover:bg-orange-50"
+              className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-bold"
             >
               View bookings
               <IonIcon icon={arrowForwardOutline} aria-hidden="true" />

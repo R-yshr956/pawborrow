@@ -1,13 +1,6 @@
 import { useState } from "react";
-import {
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import {
-  IonContent,
-  IonPage,
-  IonIcon,
-} from "@ionic/react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { IonContent, IonPage, IonIcon } from "@ionic/react";
 import {
   chevronBackOutline,
   calendarOutline,
@@ -57,45 +50,23 @@ const BookingReview = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const locationState =
-    location.state as BookingReviewState | undefined;
+  const locationState = location.state as BookingReviewState | undefined;
 
-  /*
-   * Supports both navigation formats:
-   *
-   * 1. PetDetails:
-   *    navigate("/booking-review", { state: bookingDraft })
-   *
-   * 2. PaymentMethods:
-   *    navigate("/booking-review", {
-   *      state: { draft, selectedCardId, returnTo }
-   *    })
-   */
   const draft: BookingDraft | undefined =
     locationState?.draft ??
-    (locationState?.petId
-      ? (locationState as BookingDraft)
-      : undefined);
+    (locationState?.petId ? (locationState as BookingDraft) : undefined);
 
-  const returnTo =
-    locationState?.returnTo ?? "/dashboard";
+  const returnTo = locationState?.returnTo ?? "/dashboard";
 
-  const [selectedCardId, setSelectedCardId] =
-    useState(
-      locationState?.selectedCardId ??
-        mockCards[0]?.id ??
-        "",
-    );
-
-  const selectedCard = mockCards.find(
-    (card) => card.id === selectedCardId,
+  const [selectedCardId, setSelectedCardId] = useState(
+    locationState?.selectedCardId ?? mockCards[0]?.id ?? "",
   );
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const selectedCard = mockCards.find((card) => card.id === selectedCardId);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [error, setError] = useState<string | null>(null);
 
   const handleBack = () => {
     navigate(returnTo, {
@@ -119,9 +90,7 @@ const BookingReview = () => {
     if (!draft || isSubmitting) return;
 
     if (!selectedCard) {
-      setError(
-        "Please select a payment method before confirming.",
-      );
+      setError("Please select a payment method before confirming.");
       return;
     }
 
@@ -139,14 +108,9 @@ const BookingReview = () => {
     try {
       const result = await completeMockCheckout(input);
 
-      /*
-       * Supports a Supabase RPC returning either:
-       * - one booking object
-       * - an array containing one booking object
-       */
-      const createdBooking = (
-        Array.isArray(result) ? result[0] : result
-      ) as CreatedBooking | undefined;
+      const createdBooking = (Array.isArray(result) ? result[0] : result) as
+        | CreatedBooking
+        | undefined;
 
       await Promise.all([
         queryClient.invalidateQueries({
@@ -166,8 +130,7 @@ const BookingReview = () => {
       navigate("/booking-confirmation", {
         state: {
           bookingId: createdBooking?.booking_id,
-          status:
-            createdBooking?.status ?? "pending",
+          status: createdBooking?.status ?? "pending",
           photo: draft.photo,
           name: draft.name,
           category: draft.category,
@@ -175,22 +138,15 @@ const BookingReview = () => {
           date: draft.displayDate,
           time: draft.displayTime,
           reservationDate:
-            createdBooking?.reservation_date ??
-            draft.reservationDate,
-          timeSlot:
-            createdBooking?.time_slot ??
-            draft.timeSlot,
+            createdBooking?.reservation_date ?? draft.reservationDate,
+          timeSlot: createdBooking?.time_slot ?? draft.timeSlot,
           durationMinutes:
-            createdBooking?.duration_minutes ??
-            draft.durationMinutes,
+            createdBooking?.duration_minutes ?? draft.durationMinutes,
         },
         replace: true,
       });
     } catch (err) {
-      console.error(
-        "Failed to complete mock checkout:",
-        err,
-      );
+      console.error("Failed to complete mock checkout:", err);
 
       setError(
         err instanceof Error
@@ -205,10 +161,7 @@ const BookingReview = () => {
   if (!draft) {
     return (
       <IonPage>
-        <IonContent
-          fullscreen
-          className="booking-review-content"
-        >
+        <IonContent fullscreen className="booking-review-content">
           <div className="booking-review-empty">
             <p>Nothing to review.</p>
 
@@ -230,10 +183,7 @@ const BookingReview = () => {
 
   return (
     <IonPage>
-      <IonContent
-        fullscreen
-        className="booking-review-content"
-      >
+      <IonContent fullscreen className="booking-review-content">
         <div className="booking-review">
           <header className="booking-review-header">
             <button
@@ -250,15 +200,10 @@ const BookingReview = () => {
           </header>
 
           <div className="booking-review-card">
-            <img
-              src={draft.photo}
-              alt={draft.name}
-            />
+            <img src={draft.photo} alt={draft.name} />
 
             <div>
-              <p className="booking-review-name">
-                {draft.name}
-              </p>
+              <p className="booking-review-name">{draft.name}</p>
 
               <p className="booking-review-subtitle">
                 {draft.category} • {draft.subtitle}
@@ -290,9 +235,7 @@ const BookingReview = () => {
             </div>
 
             <div className="booking-review-row">
-              <span className="booking-review-row-label">
-                Duration
-              </span>
+              <span className="booking-review-row-label">Duration</span>
 
               <span className="booking-review-row-value">
                 {draft.durationMinutes} minutes
@@ -301,20 +244,14 @@ const BookingReview = () => {
 
             {draft.detail && (
               <div className="booking-review-row">
-                <span className="booking-review-row-label">
-                  Details
-                </span>
+                <span className="booking-review-row-label">Details</span>
 
-                <span className="booking-review-row-value">
-                  {draft.detail}
-                </span>
+                <span className="booking-review-row-value">{draft.detail}</span>
               </div>
             )}
           </div>
 
-          <p className="booking-review-section-title">
-            Payment Method
-          </p>
+          <p className="booking-review-section-title">Payment Method</p>
 
           {mockCards.length === 0 ? (
             <button
@@ -349,8 +286,7 @@ const BookingReview = () => {
 
               <div className="booking-review-payment-info">
                 <p className="booking-review-payment-brand">
-                  {selectedCard?.brand ??
-                    "Select payment method"}
+                  {selectedCard?.brand ?? "Select payment method"}
                 </p>
 
                 {selectedCard && (
@@ -368,17 +304,14 @@ const BookingReview = () => {
           )}
 
           {error && (
-            <p
-              className="booking-review-error"
-              role="alert"
-            >
+            <p className="booking-review-error" role="alert">
               {error}
             </p>
           )}
 
           <p className="booking-review-note">
-            This is a mock payment. No money will be charged.
-            Your booking is created only after you confirm.
+            This is a mock payment. No money will be charged. Your booking is
+            created only after you confirm.
           </p>
         </div>
 
@@ -396,13 +329,9 @@ const BookingReview = () => {
             type="button"
             className="booking-review-confirm"
             onClick={handleConfirm}
-            disabled={
-              !selectedCard || isSubmitting
-            }
+            disabled={!selectedCard || isSubmitting}
           >
-            {isSubmitting
-              ? "Processing..."
-              : "Simulate Payment & Book"}
+            {isSubmitting ? "Processing..." : "Simulate Payment & Book"}
           </button>
         </div>
       </IonContent>

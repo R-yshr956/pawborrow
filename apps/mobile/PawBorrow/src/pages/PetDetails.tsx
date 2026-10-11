@@ -1,17 +1,6 @@
-import {
-  useMemo,
-  useState,
-} from "react";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-import {
-  IonContent,
-  IonIcon,
-  IonPage,
-} from "@ionic/react";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import {
   calendarOutline,
   chevronBackOutline,
@@ -19,10 +8,7 @@ import {
 } from "ionicons/icons";
 import { usePets } from "@repo/api";
 
-import {
-  getPetImage,
-  handlePetImageError,
-} from "../utils/petImage";
+import { getPetImage, handlePetImageError } from "../utils/petImage";
 import "../style/PetDetails.css";
 
 function getToday(): string {
@@ -30,65 +16,47 @@ function getToday(): string {
 
   const year = date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
-function formatDisplayDate(
-  dateValue: string,
-): string {
+function formatDisplayDate(dateValue: string): string {
   if (!dateValue) {
     return "";
   }
 
-  const date = new Date(
-    `${dateValue}T00:00:00`,
-  );
+  const date = new Date(`${dateValue}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) {
     return dateValue;
   }
 
-  return date.toLocaleDateString(
-    "en-US",
-    {
-      weekday: "short",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    },
-  );
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-function formatDisplayTime(
-  timeValue: string,
-): string {
+function formatDisplayTime(timeValue: string): string {
   if (!timeValue) {
     return "";
   }
 
-  const date = new Date(
-    `1970-01-01T${timeValue}:00`,
-  );
+  const date = new Date(`1970-01-01T${timeValue}:00`);
 
   if (Number.isNaN(date.getTime())) {
     return timeValue;
   }
 
-  return date.toLocaleTimeString(
-    "en-US",
-    {
-      hour: "numeric",
-      minute: "2-digit",
-    },
-  );
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 const PetDetails: React.FC = () => {
@@ -99,55 +67,30 @@ const PetDetails: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {
-    data: pets = [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = usePets();
+  const { data: pets = [], isLoading, isError, error, refetch } = usePets();
 
   const pet = useMemo(() => {
     const numericPetId = Number(petId);
 
-    if (
-      !Number.isInteger(numericPetId) ||
-      numericPetId <= 0
-    ) {
+    if (!Number.isInteger(numericPetId) || numericPetId <= 0) {
       return undefined;
     }
 
-    return pets.find(
-      (item) =>
-        item.id === numericPetId,
-    );
+    return pets.find((item) => item.id === numericPetId);
   }, [pets, petId]);
 
-  const [
-    reservationDate,
-    setReservationDate,
-  ] = useState("");
+  const [reservationDate, setReservationDate] = useState("");
 
-  const [startTime, setStartTime] =
-    useState("09:00");
+  const [startTime, setStartTime] = useState("09:00");
 
-  const [
-    durationMinutes,
-    setDurationMinutes,
-  ] = useState(60);
+  const [durationMinutes, setDurationMinutes] = useState(60);
 
-  const [
-    validationError,
-    setValidationError,
-  ] = useState("");
+  const [validationError, setValidationError] = useState("");
 
   if (isLoading) {
     return (
       <IonPage>
-        <IonContent
-          fullscreen
-          className="pet-details-content"
-        >
+        <IonContent fullscreen className="pet-details-content">
           <div className="pet-details-not-found">
             <p>Loading pet...</p>
           </div>
@@ -159,15 +102,10 @@ const PetDetails: React.FC = () => {
   if (isError) {
     return (
       <IonPage>
-        <IonContent
-          fullscreen
-          className="pet-details-content"
-        >
+        <IonContent fullscreen className="pet-details-content">
           <div className="pet-details-not-found">
             <p>
-              {error instanceof Error
-                ? error.message
-                : "Failed to load pet."}
+              {error instanceof Error ? error.message : "Failed to load pet."}
             </p>
 
             <button
@@ -179,14 +117,7 @@ const PetDetails: React.FC = () => {
               Try Again
             </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/pet-category",
-                )
-              }
-            >
+            <button type="button" onClick={() => navigate("/pet-category")}>
               Back to Pets
             </button>
           </div>
@@ -198,21 +129,11 @@ const PetDetails: React.FC = () => {
   if (!pet) {
     return (
       <IonPage>
-        <IonContent
-          fullscreen
-          className="pet-details-content"
-        >
+        <IonContent fullscreen className="pet-details-content">
           <div className="pet-details-not-found">
             <p>Pet not found.</p>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/pet-category",
-                )
-              }
-            >
+            <button type="button" onClick={() => navigate("/pet-category")}>
               Back to Pets
             </button>
           </div>
@@ -223,13 +144,9 @@ const PetDetails: React.FC = () => {
 
   const currentPet = pet;
 
-  const normalizedStatus =
-    currentPet.status
-      .trim()
-      .toLowerCase();
+  const normalizedStatus = currentPet.status.trim().toLowerCase();
 
-  const isAvailable =
-    normalizedStatus === "available";
+  const isAvailable = normalizedStatus === "available";
 
   function clearValidationError() {
     setValidationError("");
@@ -239,37 +156,26 @@ const PetDetails: React.FC = () => {
     clearValidationError();
 
     if (!isAvailable) {
-      setValidationError(
-        "This pet is currently unavailable.",
-      );
+      setValidationError("This pet is currently unavailable.");
       return;
     }
 
     if (!reservationDate) {
-      setValidationError(
-        "Please select a reservation date.",
-      );
+      setValidationError("Please select a reservation date.");
       return;
     }
 
     if (reservationDate < getToday()) {
-      setValidationError(
-        "The reservation date cannot be in the past.",
-      );
+      setValidationError("The reservation date cannot be in the past.");
       return;
     }
 
     if (!startTime) {
-      setValidationError(
-        "Please select a start time.",
-      );
+      setValidationError("Please select a start time.");
       return;
     }
 
-    if (
-      durationMinutes < 30 ||
-      durationMinutes % 15 !== 0
-    ) {
+    if (durationMinutes < 30 || durationMinutes % 15 !== 0) {
       setValidationError(
         "Duration must be at least 30 minutes and use 15-minute increments.",
       );
@@ -279,27 +185,16 @@ const PetDetails: React.FC = () => {
     navigate("/booking-review", {
       state: {
         petId: currentPet.id,
-        photo: getPetImage(
-          currentPet.image,
-        ),
+        photo: getPetImage(currentPet.image),
         name: currentPet.name,
         category: currentPet.category,
-        subtitle:
-          currentPet.breed ??
-          "Unknown breed",
+        subtitle: currentPet.breed ?? "Unknown breed",
         reservationDate,
         timeSlot: startTime,
         durationMinutes,
-        displayDate:
-          formatDisplayDate(
-            reservationDate,
-          ),
-        displayTime:
-          formatDisplayTime(
-            startTime,
-          ),
-        detail:
-          `${durationMinutes} minutes`,
+        displayDate: formatDisplayDate(reservationDate),
+        displayTime: formatDisplayTime(startTime),
+        detail: `${durationMinutes} minutes`,
         returnTo: location.pathname,
       },
     });
@@ -307,15 +202,10 @@ const PetDetails: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent
-        fullscreen
-        className="pet-details-content"
-      >
+      <IonContent fullscreen className="pet-details-content">
         <div className="pet-details-photo-wrap">
           <img
-            src={getPetImage(
-              currentPet.image,
-            )}
+            src={getPetImage(currentPet.image)}
             alt={currentPet.name}
             onError={handlePetImageError}
           />
@@ -326,90 +216,61 @@ const PetDetails: React.FC = () => {
             aria-label="Go back"
             onClick={() => navigate(-1)}
           >
-            <IonIcon
-              icon={chevronBackOutline}
-            />
+            <IonIcon icon={chevronBackOutline} />
           </button>
 
-          <h1 className="pet-details-photo-title">
-            Pet
-          </h1>
+          <h1 className="pet-details-photo-title">Pet</h1>
         </div>
 
         <div className="pet-details-sheet">
-          <p className="pet-details-label">
-            Name
-          </p>
+          <p className="pet-details-label">Name</p>
 
-          <h2 className="pet-details-name">
-            {currentPet.name}
-          </h2>
+          <h2 className="pet-details-name">{currentPet.name}</h2>
 
           <div className="pet-details-stats">
             <div className="pet-details-stat">
-              <p className="pet-details-stat-label">
-                Category
-              </p>
+              <p className="pet-details-stat-label">Category</p>
+
+              <p className="pet-details-stat-value">{currentPet.category}</p>
+            </div>
+
+            <div className="pet-details-stat">
+              <p className="pet-details-stat-label">Breed</p>
 
               <p className="pet-details-stat-value">
-                {currentPet.category}
+                {currentPet.breed ?? "Not specified"}
               </p>
             </div>
 
             <div className="pet-details-stat">
-              <p className="pet-details-stat-label">
-                Breed
-              </p>
-
-              <p className="pet-details-stat-value">
-                {currentPet.breed ??
-                  "Not specified"}
-              </p>
-            </div>
-
-            <div className="pet-details-stat">
-              <p className="pet-details-stat-label">
-                Status
-              </p>
+              <p className="pet-details-stat-label">Status</p>
 
               <p className="pet-details-stat-value">
                 {isAvailable
                   ? "Available"
-                  : normalizedStatus ===
-                      "booked"
+                  : normalizedStatus === "booked"
                     ? "Booked"
                     : "Unavailable"}
               </p>
             </div>
           </div>
 
-          <h3 className="pet-details-section-title">
-            Personality
-          </h3>
+          <h3 className="pet-details-section-title">Personality</h3>
 
           <p className="pet-details-about">
-            {currentPet.personality
-              .length > 0
-              ? currentPet.personality.join(
-                  ", ",
-                )
+            {currentPet.personality.length > 0
+              ? currentPet.personality.join(", ")
               : "No personality information provided."}
           </p>
 
           <div className="pet-details-days-header">
-            <h3 className="pet-details-section-title">
-              Reservation Date
-            </h3>
+            <h3 className="pet-details-section-title">Reservation Date</h3>
 
             <span className="pet-details-month">
-              <IonIcon
-                icon={calendarOutline}
-              />
+              <IonIcon icon={calendarOutline} />
 
               {reservationDate
-                ? formatDisplayDate(
-                    reservationDate,
-                  )
+                ? formatDisplayDate(reservationDate)
                 : "Select a date"}
             </span>
           </div>
@@ -421,22 +282,16 @@ const PetDetails: React.FC = () => {
             className="pet-details-date-input"
             disabled={!isAvailable}
             onChange={(event) => {
-              setReservationDate(
-                event.target.value,
-              );
+              setReservationDate(event.target.value);
 
               clearValidationError();
             }}
           />
 
-          <h3 className="pet-details-section-title">
-            Start Time
-          </h3>
+          <h3 className="pet-details-section-title">Start Time</h3>
 
           <div className="pet-details-time-input-wrap">
-            <IonIcon
-              icon={timeOutline}
-            />
+            <IonIcon icon={timeOutline} />
 
             <input
               type="time"
@@ -444,54 +299,36 @@ const PetDetails: React.FC = () => {
               className="pet-details-time-input"
               disabled={!isAvailable}
               onChange={(event) => {
-                setStartTime(
-                  event.target.value,
-                );
+                setStartTime(event.target.value);
 
                 clearValidationError();
               }}
             />
           </div>
 
-          <h3 className="pet-details-section-title">
-            Duration
-          </h3>
+          <h3 className="pet-details-section-title">Duration</h3>
 
           <div className="pet-details-duration">
             <button
               type="button"
               aria-label="Decrease duration"
               onClick={() => {
-                setDurationMinutes(
-                  (current) =>
-                    Math.max(
-                      30,
-                      current - 15,
-                    ),
-                );
+                setDurationMinutes((current) => Math.max(30, current - 15));
 
                 clearValidationError();
               }}
-              disabled={
-                !isAvailable ||
-                durationMinutes <= 30
-              }
+              disabled={!isAvailable || durationMinutes <= 30}
             >
               −
             </button>
 
-            <span>
-              {durationMinutes} minutes
-            </span>
+            <span>{durationMinutes} minutes</span>
 
             <button
               type="button"
               aria-label="Increase duration"
               onClick={() => {
-                setDurationMinutes(
-                  (current) =>
-                    current + 15,
-                );
+                setDurationMinutes((current) => current + 15);
 
                 clearValidationError();
               }}
@@ -502,10 +339,7 @@ const PetDetails: React.FC = () => {
           </div>
 
           {validationError && (
-            <p
-              className="pet-details-error"
-              role="alert"
-            >
+            <p className="pet-details-error" role="alert">
               {validationError}
             </p>
           )}
@@ -518,8 +352,7 @@ const PetDetails: React.FC = () => {
           >
             {isAvailable
               ? "Book Now"
-              : normalizedStatus ===
-                  "booked"
+              : normalizedStatus === "booked"
                 ? "Already Booked"
                 : "Unavailable"}
           </button>
