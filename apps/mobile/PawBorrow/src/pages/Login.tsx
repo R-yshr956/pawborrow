@@ -102,10 +102,6 @@ export default function Login() {
     setLoading(true);
 
     try {
-      /*
-       * Do not navigate here. AuthContext will receive the session,
-       * isLoggedIn will become true, and the effect above will navigate.
-       */
       await login(normalizedEmail, password);
     } catch (loginError) {
       setError(

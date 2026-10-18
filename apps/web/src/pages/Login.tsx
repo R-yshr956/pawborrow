@@ -31,9 +31,7 @@ export default function Login() {
       navigate("/");
     } catch (err) {
       setAuthError(
-        err instanceof Error
-          ? err.message
-          : "Invalid email or password"
+        err instanceof Error ? err.message : "Invalid email or password",
       );
     }
   };
@@ -45,16 +43,13 @@ export default function Login() {
       await signInWithGoogle("/");
     } catch (err) {
       setAuthError(
-        err instanceof Error
-          ? err.message
-          : "Unable to sign in with Google"
+        err instanceof Error ? err.message : "Unable to sign in with Google",
       );
     }
   };
 
   return (
     <main className="flex min-h-screen bg-white">
-
       <div
         className="
           relative z-2 hidden shrink-0 grow-0 basis-1/2
@@ -84,10 +79,9 @@ export default function Login() {
               </div>
 
               <div className="relative flex h-full flex-col justify-end p-12">
-
-                <p className="mt-2 text-base">
-                  You've got a friend in me
-                </p>
+                <span className="font-serif text-[32px] font-normal">
+                  PawBorrow
+                </span>
               </div>
             </div>
           </div>
@@ -98,10 +92,7 @@ export default function Login() {
         <div className="w-full max-w-105">
           <div className="flex flex-col items-center justify-center text-center">
             <Link to="/" aria-label="Go to home">
-              <img
-                src="/images/PawLogo2.png"
-                alt="PawBorrow"
-              />
+              <img src="/images/PawLogo2.png" alt="PawBorrow" />
             </Link>
 
             <h1 className="font-serif text-[32px] font-normal text-[#1b1b1b]">
@@ -113,15 +104,9 @@ export default function Login() {
             </p>
           </div>
 
-          <form
-            className="mt-8 space-y-5"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
             {authError && (
-              <p
-                role="alert"
-                className="text-center text-sm text-red-500"
-              >
+              <p role="alert" className="text-center text-sm text-red-500">
                 {authError}
               </p>
             )}

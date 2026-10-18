@@ -119,7 +119,10 @@ export const Dashboard = () => {
 
   const notificationCount = upcomingBookings.length;
   const greeting = getGreeting(now.getHours());
-  const firstName = user?.firstName?.trim() || "Pet Lover";
+  const firstName =
+    user?.fullName?.trim().split(/\s+/)[0] ||
+    user?.displayName?.trim() ||
+    "Pet Lover";
 
   return (
     <IonPage>

@@ -127,3 +127,11 @@ Retrieved 2026-09-02, License - CC BY-SA 4.0
     hover:after:w-full
     hover:after:left-0;
 }
+
+
+body.botpress-auth-route .bpFab,
+body.botpress-auth-route .bpWebchat {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
