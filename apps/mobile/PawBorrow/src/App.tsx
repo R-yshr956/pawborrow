@@ -4,6 +4,7 @@ import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Notification from "./pages/Notification";
 import History from "./pages/History";
@@ -48,7 +49,6 @@ const splashCatDogPhoto =
 const splashMiddlePhoto = "/images/pets/image-12.png";
 
 const logo = "/images/logo.png";
-
 const vector = "/images/splash/vector.svg";
 
 const App: React.FC = () => {
@@ -65,15 +65,19 @@ const AppContent: React.FC = () => {
   const { isLoggedIn, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    const loadingTimer = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setSplashLoading(false);
     }, 1500);
 
     return () => {
-      window.clearTimeout(loadingTimer);
+      window.clearTimeout(timer);
     };
   }, []);
 
+  /*
+   * Show the splash screen only while the application and initial
+   * Supabase session are being restored.
+   */
   if (splashLoading || authLoading) {
     return (
       <IonApp>
@@ -82,93 +86,183 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!isLoggedIn) {
-    return (
-      <IonApp>
-        <IonReactRouter>
-          <IonRouterOutlet>
-            <Route path="/login" element={<Login />} />
-
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </IonRouterOutlet>
-        </IonReactRouter>
-      </IonApp>
-    );
-  }
-
   return (
     <IonApp>
       <IonReactRouter>
         <IonRouterOutlet>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/login"
+            element={
+              isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />
+            }
+          />
 
-          <Route path="/notification" element={<Notification />} />
+          <Route
+            path="/signup"
+            element={
+              isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignUp />
+            }
+          />
 
-          <Route path="/history" element={<History />} />
+          <Route
+            path="/dashboard"
+            element={
+              isLoggedIn ? <Dashboard /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/notification"
+            element={
+              isLoggedIn ? <Notification /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/liked-pets" element={<LikedPets />} />
+          <Route
+            path="/history"
+            element={
+              isLoggedIn ? <History /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/about-us" element={<AboutUs />} />
+          <Route
+            path="/profile"
+            element={
+              isLoggedIn ? <Profile /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/pet-category" element={<PetCategory />} />
+          <Route
+            path="/liked-pets"
+            element={
+              isLoggedIn ? <LikedPets /> : <Navigate to="/login" replace />
+            }
+          />
+
+          <Route
+            path="/about-us"
+            element={
+              isLoggedIn ? <AboutUs /> : <Navigate to="/login" replace />
+            }
+          />
+
+          <Route
+            path="/pet-category"
+            element={
+              isLoggedIn ? <PetCategory /> : <Navigate to="/login" replace />
+            }
+          />
 
           <Route
             path="/breed-selection/:animalId"
-            element={<BreedSelection />}
+            element={
+              isLoggedIn ? <BreedSelection /> : <Navigate to="/login" replace />
+            }
           />
 
           <Route
             path="/breed-pets/:animalId/:breedId"
-            element={<BreedPets />}
+            element={
+              isLoggedIn ? <BreedPets /> : <Navigate to="/login" replace />
+            }
           />
 
           <Route
             path="/dashboard/breed/:animalId/:breedId"
-            element={<BreedPets />}
+            element={
+              isLoggedIn ? <BreedPets /> : <Navigate to="/login" replace />
+            }
           />
 
-          <Route path="/dashboard/pet/:petId" element={<PetDetails />} />
+          <Route
+            path="/dashboard/pet/:petId"
+            element={
+              isLoggedIn ? <PetDetails /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/pet/:petId" element={<PetDetails />} />
+          <Route
+            path="/pet/:petId"
+            element={
+              isLoggedIn ? <PetDetails /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route
+            path="/my-bookings"
+            element={
+              isLoggedIn ? <MyBookings /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/review/:bookingId" element={<Review />} />
+          <Route
+            path="/review/:bookingId"
+            element={isLoggedIn ? <Review /> : <Navigate to="/login" replace />}
+          />
 
-          <Route path="/payment-methods" element={<PaymentMethods />} />
+          <Route
+            path="/payment-methods"
+            element={
+              isLoggedIn ? <PaymentMethods /> : <Navigate to="/login" replace />
+            }
+          />
 
           <Route
             path="/notification-settings"
-            element={<NotificationSettings />}
+            element={
+              isLoggedIn ? (
+                <NotificationSettings />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
 
-          <Route path="/app-settings" element={<AppSettings />} />
+          <Route
+            path="/app-settings"
+            element={
+              isLoggedIn ? <AppSettings /> : <Navigate to="/login" replace />
+            }
+          />
 
-          <Route path="/booking-review" element={<BookingReview />} />
+          <Route
+            path="/booking-review"
+            element={
+              isLoggedIn ? <BookingReview /> : <Navigate to="/login" replace />
+            }
+          />
 
           <Route
             path="/booking-confirmation"
-            element={<BookingConfirmation />}
+            element={
+              isLoggedIn ? (
+                <BookingConfirmation />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
 
           <Route path="/terms-of-service" element={<TermsOfService />} />
 
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/"
+            element={
+              <Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />
+            }
+          />
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="*"
+            element={
+              <Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />
+            }
+          />
         </IonRouterOutlet>
 
-        <BottomNav />
+        {isLoggedIn && <BottomNav />}
       </IonReactRouter>
     </IonApp>
   );

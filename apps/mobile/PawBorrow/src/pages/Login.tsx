@@ -1,16 +1,19 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { IonContent, IonPage, IonIcon } from "@ionic/react";
+import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import {
-  eyeOutline,
   eyeOffOutline,
-  mailOutline,
+  eyeOutline,
   lockClosedOutline,
   logoGoogle,
+  mailOutline,
 } from "ionicons/icons";
 
 import { useAuth } from "../context/AuthContext";
-import { signInWithGoogleMobile as signInWithGoogle } from "../utils/mobileAuth";
+import {
+  listenForMobileAuth,
+  signInWithGoogleMobile as signInWithGoogle,
+} from "../utils/mobileAuth";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (
@@ -27,7 +30,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { isLoggedIn, login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,21 +41,55 @@ export default function Login() {
 
   const isBusy = loading || googleLoading;
 
-  const inputClass =
-    "w-full box-border rounded-xl border-[1.5px] border-[#f5b98a] " +
-    "bg-white px-4 py-3 text-[clamp(0.85rem,2vw,1rem)] text-[#2b2a2a] " +
-    "outline-none placeholder:text-[#cfcfcf] caret-[#f5821f] " +
-    "[-webkit-text-fill-color:#2b2a2a]";
+  /*
+   * Register the Android callback listener when Login mounts.
+   */
+  useEffect(() => {
+    return listenForMobileAuth(
+      () => {
+        setGoogleLoading(false);
+      },
+      (message) => {
+        setGoogleLoading(false);
+        setError(message);
+      },
+    );
+  }, []);
 
-  const textButtonClass =
-    "cursor-pointer border-0 bg-transparent p-0 font-[inherit] " +
-    "text-[#9a9a9a] underline disabled:cursor-not-allowed " +
-    "disabled:opacity-65";
+  /*
+   * Navigate only after AuthContext confirms that a real session exists.
+   */
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/dashboard", {
+        replace: true,
+      });
+    }
+  }, [isLoggedIn, navigate]);
+
+  const inputClass = [
+    "w-full box-border rounded-xl",
+    "border-[1.5px] border-[#f5b98a]",
+    "bg-white px-4 py-3",
+    "text-[clamp(0.85rem,2vw,1rem)] text-[#2b2a2a]",
+    "outline-none placeholder:text-[#cfcfcf]",
+    "caret-[#f5821f] [-webkit-text-fill-color:#2b2a2a]",
+    "focus:border-[#f5821f] focus:ring-4 focus:ring-[#f5821f]/10",
+    "disabled:cursor-not-allowed disabled:opacity-65",
+  ].join(" ");
+
+  const textButtonClass = [
+    "cursor-pointer border-0 bg-transparent p-0",
+    "font-[inherit] text-[#9a9a9a] underline",
+    "disabled:cursor-not-allowed disabled:opacity-65",
+  ].join(" ");
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isBusy) return;
+    if (isBusy) {
+      return;
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -65,8 +102,11 @@ export default function Login() {
     setLoading(true);
 
     try {
+      /*
+       * Do not navigate here. AuthContext will receive the session,
+       * isLoggedIn will become true, and the effect above will navigate.
+       */
       await login(normalizedEmail, password);
-      navigate("/dashboard", { replace: true });
     } catch (loginError) {
       setError(
         getErrorMessage(
@@ -80,7 +120,9 @@ export default function Login() {
   }
 
   async function handleGoogleLogin() {
-    if (isBusy) return;
+    if (isBusy) {
+      return;
+    }
 
     setError("");
     setGoogleLoading(true);
@@ -88,22 +130,23 @@ export default function Login() {
     try {
       await signInWithGoogle();
     } catch (googleError) {
-      setError(getErrorMessage(googleError, "Unable to sign in with Google."));
-    } finally {
       setGoogleLoading(false);
+
+      setError(getErrorMessage(googleError, "Unable to sign in with Google."));
     }
   }
 
   return (
     <IonPage>
-      <IonContent fullscreen className="[--background:#ffffff]">
+      <IonContent fullscreen scrollY className="[--background:#ffffff]">
         <form
           onSubmit={handleLogin}
           className={[
-            "mx-auto box-border flex w-full max-w-[420px] flex-col",
+            "mx-auto box-border flex min-h-full",
+            "w-full max-w-[420px] flex-col",
             "px-[clamp(18px,5vw,28px)]",
-            "pt-[clamp(24px,6vh,48px)]",
-            "pb-[clamp(24px,5vh,32px)]",
+            "pt-[calc(clamp(24px,6vh,48px)+env(safe-area-inset-top))]",
+            "pb-[calc(clamp(24px,5vh,32px)+env(safe-area-inset-bottom))]",
             "[@media(max-height:640px)]:pt-[18px]",
             "[@media(orientation:landscape)_and_(max-height:500px)]:pt-[12px]",
             "[@media(orientation:landscape)_and_(max-height:500px)]:pb-[10px]",
@@ -111,7 +154,7 @@ export default function Login() {
         >
           <h1
             className={[
-              "mt-[clamp(24px,9vh,85px)] mb-1",
+              "mb-1 mt-[clamp(24px,9vh,85px)]",
               "text-center text-[clamp(2.2rem,5vw,2.8rem)]",
               "font-bold text-[#f5821f]",
               "[@media(max-height:640px)]:mt-[20px]",
@@ -125,14 +168,14 @@ export default function Login() {
             src="/images/logo.png"
             alt="PawBorrow logo"
             className={[
-              "mx-auto mb-[clamp(20px,4vh,32px)] ml-[70px]",
+              "mx-auto mb-[clamp(20px,4vh,32px)]",
               "block w-[clamp(110px,40vw,200px)] max-w-[200px]",
-              "scale-[1.8]",
+              "object-contain",
               "[@media(max-height:640px)]:mb-[14px]",
             ].join(" ")}
           />
 
-          <div className="mt-[clamp(12px,2vh,20px)] mb-[clamp(12px,2vh,18px)]">
+          <div className="mb-[clamp(12px,2vh,18px)] mt-[clamp(12px,2vh,20px)]">
             <label
               htmlFor="login-email"
               className="mb-[6px] block text-[13px] text-[#333333]"
@@ -140,11 +183,14 @@ export default function Login() {
               Email
             </label>
 
-            <div className="relative flex items-center">
+            <div className="relative">
               <IonIcon
                 icon={mailOutline}
-                className="mr-2 shrink-0 text-[#8a8a8a]"
                 aria-hidden="true"
+                className="
+                  pointer-events-none absolute left-4 top-1/2
+                  z-10 -translate-y-1/2 text-lg text-[#8a8a8a]
+                "
               />
 
               <input
@@ -162,7 +208,7 @@ export default function Login() {
                 }}
                 required
                 disabled={isBusy}
-                className={`${inputClass} min-w-0`}
+                className={`${inputClass} pl-11`}
               />
             </div>
 
@@ -174,11 +220,14 @@ export default function Login() {
                 Password
               </label>
 
-              <div className="relative flex items-center">
+              <div className="relative">
                 <IonIcon
                   icon={lockClosedOutline}
-                  className="mr-2 shrink-0 text-[#8a8a8a]"
                   aria-hidden="true"
+                  className="
+                    pointer-events-none absolute left-4 top-1/2
+                    z-10 -translate-y-1/2 text-lg text-[#8a8a8a]
+                  "
                 />
 
                 <input
@@ -194,21 +243,24 @@ export default function Login() {
                   }}
                   required
                   disabled={isBusy}
-                  className={`${inputClass} min-w-0 flex-1 pr-11`}
+                  className={`${inputClass} pl-11 pr-12`}
                 />
 
                 <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
-                  onClick={() => setShowPassword((current) => !current)}
+                  onClick={() => {
+                    setShowPassword((current) => !current);
+                  }}
                   disabled={isBusy}
-                  className={[
-                    "absolute right-[14px] cursor-pointer",
-                    "border-0 bg-transparent p-[6px]",
-                    "text-[20px] text-[#777777]",
-                    "disabled:cursor-not-allowed",
-                  ].join(" ")}
+                  className="
+                    absolute right-2 top-1/2 flex size-10
+                    -translate-y-1/2 cursor-pointer
+                    items-center justify-center border-0
+                    bg-transparent text-xl text-[#777777]
+                    disabled:cursor-not-allowed disabled:opacity-65
+                  "
                 >
                   <IonIcon
                     icon={showPassword ? eyeOffOutline : eyeOutline}
@@ -222,7 +274,10 @@ export default function Login() {
           {error && (
             <p
               role="alert"
-              className="mt-[-8px] mb-[14px] text-center text-[13px] text-[#e0433d]"
+              className="
+                mb-[14px] mt-[-8px] text-center
+                text-[13px] text-[#e0433d]
+              "
             >
               {error}
             </p>
@@ -233,11 +288,11 @@ export default function Login() {
             <button
               type="button"
               className={textButtonClass}
-              onClick={() =>
+              onClick={() => {
                 setError(
                   "Please contact the administrator to reset your password.",
-                )
-              }
+                );
+              }}
               disabled={isBusy}
             >
               Click Here
@@ -248,10 +303,12 @@ export default function Login() {
             type="submit"
             disabled={isBusy}
             className={[
-              "mb-[14px] w-full cursor-pointer rounded-xl",
-              "border-0 bg-[#f5821f] py-[14px]",
+              "mb-[14px] min-h-12 w-full cursor-pointer",
+              "rounded-xl border-0 bg-[#f5821f]",
+              "px-4 py-[14px]",
               "text-[clamp(0.8rem,2vw,0.95rem)]",
               "font-bold tracking-[0.3px] text-white",
+              "transition active:scale-[0.98]",
               "disabled:cursor-not-allowed disabled:opacity-65",
             ].join(" ")}
           >
@@ -259,11 +316,11 @@ export default function Login() {
           </button>
 
           <p
-            className={[
-              "mt-[clamp(18px,4vh,50px)] scale-[1.3]",
-              "text-center text-[clamp(0.7rem,1.8vw,0.85rem)]",
-              "text-[#9a9a9a]",
-            ].join(" ")}
+            className="
+              mt-[clamp(18px,4vh,50px)]
+              text-center text-[clamp(0.7rem,1.8vw,0.85rem)]
+              text-[#9a9a9a]
+            "
           >
             Don&apos;t have an account?{" "}
             <button
@@ -277,15 +334,14 @@ export default function Login() {
           </p>
 
           <div
-            className={[
-              "my-[18px] mb-[30px] flex w-full items-center gap-3",
-              "border-t border-[#f5821f]",
-              "text-[13px] text-[#8a8a8a]",
-              "before:h-px before:flex-1 before:bg-[#dddddd]",
-              "before:content-['']",
-              "after:h-px after:flex-1 after:bg-[#dddddd]",
-              "after:content-['']",
-            ].join(" ")}
+            className="
+              my-[18px] flex w-full items-center
+              gap-3 text-[13px] text-[#8a8a8a]
+              before:h-px before:flex-1 before:bg-[#dddddd]
+              before:content-['']
+              after:h-px after:flex-1 after:bg-[#dddddd]
+              after:content-['']
+            "
           >
             <span>OR</span>
           </div>
@@ -294,30 +350,32 @@ export default function Login() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isBusy}
-            className={[
-              "flex min-h-[50px] w-full cursor-pointer",
-              "items-center justify-center gap-[10px]",
-              "rounded-xl border border-[#dddddd]",
-              "bg-white font-bold text-[#222222]",
-              "disabled:cursor-not-allowed disabled:opacity-65",
-            ].join(" ")}
+            className="
+              flex min-h-[50px] w-full cursor-pointer
+              items-center justify-center gap-[10px]
+              rounded-xl border border-[#dddddd]
+              bg-white font-bold text-[#222222]
+              transition active:scale-[0.98]
+              disabled:cursor-not-allowed disabled:opacity-65
+            "
           >
             <IonIcon
               icon={logoGoogle}
               aria-hidden="true"
               className="text-[22px] text-[#4285f4]"
             />
+
             <span>
               {googleLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
             </span>
           </button>
 
           <p
-            className={[
-              "mt-[clamp(18px,4vh,50px)] scale-[1.3]",
-              "text-center text-[clamp(0.7rem,1.8vw,0.85rem)]",
-              "text-[#9a9a9a]",
-            ].join(" ")}
+            className="
+              mt-[clamp(18px,4vh,50px)]
+              text-center text-[clamp(0.7rem,1.8vw,0.85rem)]
+              text-[#9a9a9a]
+            "
           >
             By continuing, you agree to our
             <br />

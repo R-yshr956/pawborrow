@@ -20,35 +20,22 @@ type Session = {
 
 export interface UserProfile {
   id: string;
-
   email: string;
-
   displayName: string;
-
   fullName: string;
-
   firstName: string;
-
   lastName: string;
-
   phoneNumber: string;
-
   accountCreated: string;
-
   avatarUrl?: string;
 }
 
 interface AuthContextValue {
   isLoggedIn: boolean;
-
   loading: boolean;
-
   user: UserProfile | null;
-
   session: Session | null;
-
   login: (email: string, password: string) => Promise<void>;
-
   logout: () => Promise<void>;
 }
 
@@ -76,7 +63,6 @@ async function loadUserProfile(authUser: AuthUser): Promise<UserProfile> {
   }
 
   const firstName = data?.first_name ?? "";
-
   const lastName = data?.last_name ?? "";
 
   const fullName =
@@ -88,21 +74,13 @@ async function loadUserProfile(authUser: AuthUser): Promise<UserProfile> {
 
   return {
     id: authUser.id,
-
     email: data?.email ?? authUser.email ?? "",
-
     displayName: firstName || fullName,
-
     fullName,
-
     firstName,
-
     lastName,
-
     phoneNumber: data?.phone ?? "",
-
     avatarUrl: data?.avatar_url ?? undefined,
-
     accountCreated: createdAt
       ? new Date(createdAt).toLocaleDateString("en-US", {
           month: "long",
@@ -114,9 +92,7 @@ async function loadUserProfile(authUser: AuthUser): Promise<UserProfile> {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
-
   const [user, setUser] = useState<UserProfile | null>(null);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -127,12 +103,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      /*
+       * Update the session and stop the splash screen immediately.
+       * The profile query must not prevent the Dashboard from rendering.
+       */
       setSession(nextSession);
+      setLoading(false);
 
       if (!nextSession?.user) {
         setUser(null);
-        setLoading(false);
-
         return;
       }
 
@@ -147,10 +126,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (active) {
           setUser(null);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
         }
       }
     }
@@ -177,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    initializeAuth();
+    void initializeAuth();
 
     const {
       data: { subscription },
@@ -186,15 +161,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setLoading(true);
+      /*
+       * Do not set loading to true here.
+       * Doing so would display the pink splash screen after login.
+       */
       window.setTimeout(() => {
-        applySession(nextSession);
+        void applySession(nextSession);
       }, 0);
     });
 
     return () => {
       active = false;
-
       subscription.unsubscribe();
     };
   }, []);
@@ -210,13 +187,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error("Please enter your password.");
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password,
     });
 
     if (error) {
       throw error;
+    }
+
+    if (!data.session) {
+      throw new Error(
+        "Login succeeded, but no session was created. Please try again.",
+      );
     }
   }
 
@@ -228,9 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setSession(null);
-
     setUser(null);
-
     setLoading(false);
   }
 
@@ -238,15 +219,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         isLoggedIn: Boolean(session),
-
         loading,
-
         user,
-
         session,
-
         login,
-
         logout,
       }}
     >

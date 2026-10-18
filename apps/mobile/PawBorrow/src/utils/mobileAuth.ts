@@ -1,40 +1,33 @@
-import {
-  Capacitor,
-  type PluginListenerHandle,
-} from "@capacitor/core";
+import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 
-import {
-  supabase,
-  signInWithGoogle as signInWithGoogleWeb,
-} from "@repo/api";
+import { supabase, signInWithGoogle as signInWithGoogleWeb } from "@repo/api";
 
 const MOBILE_CALLBACK = "pawborrow://auth/callback";
 
-// Prevent duplicate exchanges when Android delivers the same
-// callback through both appUrlOpen and getLaunchUrl.
+/*
+ * Prevent exchanging the same callback code twice when Android delivers it
+ * through both appUrlOpen and getLaunchUrl.
+ */
 const codeExchanges = new Map<string, Promise<void>>();
 
-async function completeGoogleLogin(
-  rawUrl: string,
-): Promise<void> {
+async function completeGoogleLogin(rawUrl: string): Promise<boolean> {
   const url = new URL(rawUrl);
 
-  if (
-    url.protocol !== "pawborrow:" ||
-    url.hostname !== "auth" ||
-    url.pathname !== "/callback" ||
-    url.port ||
-    url.username ||
-    url.password
-  ) {
-    return;
+  const isMobileAuthCallback =
+    url.protocol === "pawborrow:" &&
+    url.hostname === "auth" &&
+    url.pathname === "/callback" &&
+    !url.port &&
+    !url.username &&
+    !url.password;
+
+  if (!isMobileAuthCallback) {
+    return false;
   }
 
-  const fragment = new URLSearchParams(
-    url.hash.slice(1),
-  );
+  const fragment = new URLSearchParams(url.hash.slice(1));
 
   const oauthError =
     url.searchParams.get("error_description") ??
@@ -43,17 +36,14 @@ async function completeGoogleLogin(
     fragment.get("error");
 
   if (oauthError) {
-    throw new Error(
-      `Google sign-in failed: ${oauthError}`,
-    );
+    throw new Error(`Google sign-in failed: ${oauthError}`);
   }
 
   const code = url.searchParams.get("code");
 
   if (!code) {
     throw new Error(
-      "No login code was returned. Check that " +
-        "VITE_MOBILE_AUTH_PKCE=true, rebuild, and try again.",
+      "Google returned to the app without an authorization code.",
     );
   }
 
@@ -61,53 +51,60 @@ async function completeGoogleLogin(
 
   if (!exchange) {
     exchange = (async () => {
-      const { error } =
-        await supabase.auth.exchangeCodeForSession(code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
         throw error;
+      }
+
+      if (!data.session) {
+        throw new Error("Google login completed, but no session was created.");
       }
     })();
 
     codeExchanges.set(code, exchange);
   }
 
-  await exchange;
+  try {
+    await exchange;
+  } catch (error) {
+    codeExchanges.delete(code);
+    throw error;
+  }
 
-  // Android returns to the app through the manifest intent filter.
-  // Browser.close() is only used here for iOS.
   if (Capacitor.getPlatform() === "ios") {
     await Browser.close().catch(() => undefined);
   }
+
+  return true;
 }
 
 export async function signInWithGoogleMobile(): Promise<void> {
-  // Keep normal browser login when running through Vite.
+  /*
+   * Use the existing website login when running in a normal browser.
+   */
   if (!Capacitor.isNativePlatform()) {
     await signInWithGoogleWeb();
     return;
   }
 
-  const { data, error } =
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: MOBILE_CALLBACK,
-        skipBrowserRedirect: true,
-        queryParams: {
-          prompt: "select_account",
-        },
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: MOBILE_CALLBACK,
+      skipBrowserRedirect: true,
+      queryParams: {
+        prompt: "select_account",
       },
-    });
+    },
+  });
 
   if (error) {
     throw error;
   }
 
   if (!data.url) {
-    throw new Error(
-      "Google did not return a sign-in URL.",
-    );
+    throw new Error("Google did not return a sign-in URL.");
   }
 
   await Browser.open({
@@ -116,6 +113,7 @@ export async function signInWithGoogleMobile(): Promise<void> {
 }
 
 export function listenForMobileAuth(
+  onSuccess: () => void,
   onError: (message: string) => void,
 ): () => void {
   if (!Capacitor.isNativePlatform()) {
@@ -126,7 +124,9 @@ export function listenForMobileAuth(
   let listener: PluginListenerHandle | undefined;
 
   function reportError(error: unknown) {
-    if (stopped) return;
+    if (stopped) {
+      return;
+    }
 
     onError(
       error instanceof Error
@@ -136,23 +136,28 @@ export function listenForMobileAuth(
   }
 
   async function handleUrl(url: string) {
-    if (stopped) return;
+    if (stopped) {
+      return;
+    }
 
     try {
-      await completeGoogleLogin(url);
+      const completed = await completeGoogleLogin(url);
+
+      if (completed && !stopped) {
+        onSuccess();
+      }
     } catch (error) {
       reportError(error);
     }
   }
 
   async function start() {
-    // Handles callbacks while the app is already running.
-    const handle = await App.addListener(
-      "appUrlOpen",
-      ({ url }) => {
-        void handleUrl(url);
-      },
-    );
+    /*
+     * Handles the callback when the application is already running.
+     */
+    const handle = await App.addListener("appUrlOpen", ({ url }) => {
+      void handleUrl(url);
+    });
 
     if (stopped) {
       await handle.remove();
@@ -161,7 +166,9 @@ export function listenForMobileAuth(
 
     listener = handle;
 
-    // Handles callbacks that launch a closed app.
+    /*
+     * Handles the callback when Google launches a closed application.
+     */
     const launch = await App.getLaunchUrl();
 
     if (!stopped && launch?.url) {

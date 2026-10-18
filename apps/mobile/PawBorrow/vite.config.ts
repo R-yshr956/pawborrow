@@ -1,20 +1,16 @@
 /// <reference types="vitest" />
 
-import path from "path";
 import legacy from "@vitejs/plugin-legacy";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
 import tailwindcss from "@tailwindcss/vite";
-
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [
-    react(),
-    legacy(),
-    tailwindcss(),
-  ],
+  resolve: {
+    dedupe: ["react", "react-dom", "@tanstack/react-query"],
+  },
 
-  envDir: path.resolve(__dirname, "../../web"),
+  plugins: [react(), legacy(), tailwindcss()],
 
   test: {
     globals: true,
