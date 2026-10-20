@@ -42,7 +42,7 @@ const links: SidebarLink[] = [
     to: "/bookings",
   },
   {
-    label: "Reviews",
+    label: "Review Management",
     icon: Star,
     to: "/reviews",
   },

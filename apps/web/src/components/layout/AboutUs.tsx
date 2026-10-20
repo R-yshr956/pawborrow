@@ -100,7 +100,34 @@ export default function AboutUs() {
 
       <div className="about__testimonials">
         <div className="about__video">
-    
+          <div className="about__testimonials">
+            <div className="relative mx-auto my-7 w-full max-w-177.5">
+              <span
+                aria-hidden="true"
+                className="absolute top-0 -left-5 h-1.25 w-3.75 bg-[#262521]"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute top-0 -right-5 h-1.25 w-3.75 bg-[#262521]"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute bottom-0 -left-5 h-1.25 w-3.75 bg-[#262521]"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute bottom-0 -right-5 h-1.25 w-3.75 bg-[#262521]"
+              />
+              <iframe
+                className="block aspect-video w-full border-0"
+                src="https://www.youtube.com/embed/NzCBBSrnrcg"
+                title="PawBorrow introduction video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
         </div>
       </div>
 
