@@ -1,11 +1,10 @@
-html, body, #root, ion-app {
-  background: linear-gradient(
-    180deg,
-    rgba(245, 120, 123, 1) 0%,
-    rgba(143, 70, 72, 1) 100%
-  );
-  margin: 0;
+html,
+body,
+#root,
+ion-app {
   min-height: 100%;
+  margin: 0;
+  background: #ffffff;
 }
 
 * {
@@ -16,38 +15,40 @@ html, body, #root, ion-app {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  background: #ffffff;
 }
 
 .splash-screen {
+  --stand-height: clamp(48px, 8vh, 70px);
+
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  border-radius: clamp(18px, 4vw, 66px);
   background: linear-gradient(
     180deg,
     rgba(245, 120, 123, 1) 0%,
     rgba(143, 70, 72, 1) 100%
   );
-  --stand-height: clamp(48px, 8vh, 70px);
-  border-radius: clamp(18px, 4vw, 66px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
 }
 
 .splash-screen .img-photoroom {
+  display: block;
   width: clamp(264px, 74vw, 504px);
   max-width: 100%;
   height: auto;
-  object-fit: contain;
-  display: block;
   margin: 0 auto;
+  object-fit: contain;
 }
 
 .splash-logo-wrap {
+  width: 100%;
   padding-top: clamp(60px, 16vh, 180px);
   text-align: center;
-  width: 100%;
 }
 
 .splash-arch {
@@ -56,23 +57,23 @@ html, body, #root, ion-app {
 
 .splash-vector {
   position: absolute;
+  z-index: 2;
   left: 50%;
   bottom: calc(var(--stand-height) + clamp(-30px, -6vh, -11px));
-  transform: translateX(-50%);
-  z-index: 2;
   width: min(78vw, 420px);
   height: auto;
+  transform: translateX(-50%);
 }
 
 .splash-pet-row {
   position: absolute;
-  left: 0;
+  z-index: 3;
   right: 0;
   bottom: calc(var(--stand-height) - 10px);
-  z-index: 3;
+  left: 0;
   display: flex;
-  justify-content: center;
   align-items: flex-end;
+  justify-content: center;
   gap: clamp(6px, 2vw, 12px);
   padding: 0 clamp(10px, 4vw, 20px);
 }
@@ -80,63 +81,63 @@ html, body, #root, ion-app {
 .pet-photo {
   position: relative;
   z-index: 1;
-  margin-bottom: -6px;
   display: block;
   width: 100%;
   height: 100%;
+  margin-bottom: -6px;
   object-fit: cover;
 }
 
-.pet-card img {
-  max-width: 100%;
-  height: auto;
-  display: block;
+.pet-card {
+  position: relative;
+  width: clamp(199px, 39vw, 357px);
+  overflow: visible;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.25));
 }
 
-.pet-card {
-  width: clamp(199px, 39vw, 357px);
-  position: relative;
-  overflow: visible;
-  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+.pet-card img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 .pet-card--middle {
   width: clamp(235px, 46vw, 420px);
-  margin-left: clamp(8px, 2vw, 20px);
   margin-bottom: 20px;
+  margin-left: clamp(8px, 2vw, 20px);
 }
 
 .pet-stand {
   position: absolute;
-  left: 0;
+  z-index: 2;
   bottom: 0;
+  left: 0;
+  display: flex;
   width: 100%;
   height: var(--stand-height);
-  background: #1c1c1c;
-  display: flex;
-  justify-content: center;
   align-items: flex-end;
-  z-index: 2;
+  justify-content: center;
+  background: #1c1c1c;
 }
 
 .pet-stand-inner {
   width: 95%;
   height: 60%;
+  margin-bottom: 13px;
   border-radius: 999px;
   background: #333333;
-  margin-bottom: 13px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
 }
 
 .splash-bottom-bar {
+  width: 100%;
   height: 34px;
   background: #1c1c1c;
-  width: 100%;
 }
 
 .splash-screen .closeup-shot-one {
-  height: auto;
   max-width: 100%;
+  height: auto;
   object-fit: contain;
 }
 

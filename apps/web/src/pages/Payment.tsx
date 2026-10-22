@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createPayment } from "@repo/api";
+import { completeMockCheckout } from "@repo/api";
 import type { Pet } from "@repo/api";
 import { Banknote } from "lucide-react";
 
 type PaymentState = {
-  bookingId: number;
   pet: Pet;
 
   durationMinutes: number;
@@ -82,7 +81,7 @@ export default function Payment() {
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-stone-500">
-              Please select a pet and create a booking first.
+              Please select a pet and enter your booking details first.
             </p>
 
             <button
@@ -105,22 +104,23 @@ export default function Payment() {
   console.log("End time:", paymentState.endTime);
 
   async function handlePayment() {
+    if (loading) return;
     setError("");
 
     try {
       setLoading(true);
 
-      await createPayment({
-        booking_id: paymentState.bookingId,
-        amount: paymentState.total,
+      await completeMockCheckout({
+        pet_id: paymentState.pet.id,
+        reservation_date: paymentState.reservationDate,
+        time_slot: paymentState.startTime,
+        duration_minutes: paymentState.durationMinutes,
         payment_method: selectedMethod,
       });
 
       navigate("/bookings");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create payment.",
-      );
+      setError(err instanceof Error ? err.message : "Mock checkout failed.");
     } finally {
       setLoading(false);
     }
@@ -250,7 +250,8 @@ export default function Payment() {
                 </div>
 
                 <div className="px-6 py-5">
-                  <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+                  <p className="text-xs font
+                  -medium uppercase tracking-wide text-stone-400">
                     Duration
                   </p>
 
@@ -403,9 +404,7 @@ export default function Payment() {
 
                 <div className="rounded-xl bg-amber-50 p-4">
                   <p className="text-xs leading-5 text-amber-800">
-                    By checking out, you agree with our Terms of Service and
-                    confirm that you have read our Privacy Policy. You can
-                    cancel recurring payments at any time.
+                    This is a mock checkout. No money will be charged.
                   </p>
                 </div>
 
@@ -419,11 +418,11 @@ export default function Payment() {
                   type="button"
                   onClick={handlePayment}
                   disabled={loading}
-                  className="w-full rounded-xl bg-[#dcb764] px-5 py-3.5 text-sm font-bold text-[#442808] transition hover:bg-[#cdaa4d] focus:outline-none focus:ring-2 focus:ring-[#dcb764]/50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-xl bg-froly-300 px-5 py-3.5 text-sm font-bold text-[#442808] transition hover:bg-froly-400 focus:outline-none focus:ring-2 focus:ring-[#dcb764]/50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading
                     ? "Processing..."
-                    : `Pay ₱${paymentState.total.toLocaleString()}`}
+                    : `₱${paymentState.total.toLocaleString()}`}
                 </button>
 
                 <button

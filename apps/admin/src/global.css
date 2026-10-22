@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 @import "tailwindcss";
 
 html {
@@ -6,4 +8,20 @@ html {
 
 html::-webkit-scrollbar {
   display: none;
+}
+
+@theme {
+  --font-cherry: Cherry Bomb One;
+
+  --color-froly-50: #fef2f2;
+  --color-froly-100: #fde3e4;
+  --color-froly-200: #fdcbcc;
+  --color-froly-300: #faa7a9;
+  --color-froly-400: #f5787b;
+  --color-froly-500: #eb484c;
+  --color-froly-600: #d82a2e;
+  --color-froly-700: #b52024;
+  --color-froly-800: #961e21;
+  --color-froly-900: #7d1f21;
+  --color-froly-950: #440b0c;
 }

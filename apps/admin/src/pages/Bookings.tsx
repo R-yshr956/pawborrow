@@ -1,1215 +1,965 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  CalendarClock,
+  Download,
+  Eye,
+  Printer,
+  RefreshCw,
+  Search,
+} from "lucide-react";
+import {
+  getBookingDisplayStatus,
+  useAdminBookings,
+  useAdminRescheduleBooking,
+  useCurrentTime,
+  useUpdateBookingOperations,
+  useUpdateRefund,
+  type AdminBooking,
+  type BookingStatus,
+  type RefundStatus,
+} from "@repo/api";
 
 import Header from "../components/Header";
 import Modal from "../components/Modal";
 
-import {
-  useAdminBookings,
-  useUpdateBooking,
-  useCurrentTime,
-  getTodayDate,
-  getBookingDisplayStatus,
-  useAdminRescheduleBooking,
-  useTotalBooking,
-  type AdminBooking,
-} from "@repo/api";
-
-function MiniBars({
-  heights,
-  highlightColor,
-}: {
-  heights: number[];
-  highlightColor: string;
-}) {
-  return (
-    <div className="flex h-9 items-end gap-1">
-      {heights.map((height, index) => (
-        <div
-          key={index}
-          className="w-1.5 rounded-sm"
-          style={{
-            height: `${height}%`,
-            backgroundColor:
-              index === heights.length - 2
-                ? highlightColor
-                : "#E5E7EB",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function CircularProgress({
-  percent,
-  color,
-}: {
-  percent: number;
-  color: string;
-}) {
-  const size = 44;
-  const stroke = 5;
-
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset =
-    circumference - (percent / 100) * circumference;
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      className="-rotate-90"
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke="#F1F1F1"
-        strokeWidth={stroke}
-        fill="none"
-      />
-
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke={color}
-        strokeWidth={stroke}
-        fill="none"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 const statusStyles: Record<string, string> = {
-  pending: "bg-yellow-200 text-yellow-800",
-  confirmed: "bg-emerald-200 text-emerald-700",
-  cancelled: "bg-rose-200 text-rose-700",
-  completed: "bg-gray-200 text-gray-700",
-  in_progress: "bg-blue-200 text-blue-700",
-  upcoming: "bg-sky-200 text-sky-700",
+  pending: "bg-amber-50 text-amber-700",
+  confirmed: "bg-emerald-50 text-emerald-700",
+  cancelled: "bg-red-50 text-red-700",
+  completed: "bg-slate-100 text-slate-700",
+  in_progress: "bg-blue-50 text-blue-700",
 };
 
-function formatTime(time: string | null) {
-  if (!time) {
-    return "—";
-  }
+const refundStyles: Record<string, string> = {
+  none: "bg-gray-100 text-gray-600",
+  requested: "bg-amber-50 text-amber-700",
+  processing: "bg-blue-50 text-blue-700",
+  completed: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-red-50 text-red-700",
+  cancelled: "bg-gray-100 text-gray-600",
+};
 
-  const [hours, minutes] = time.split(":").map(Number);
-
-  if (
-    !Number.isInteger(hours) ||
-    !Number.isInteger(minutes) ||
-    hours < 0 ||
-    hours > 23 ||
-    minutes < 0 ||
-    minutes > 59
-  ) {
-    return time;
-  }
-
-  const suffix = hours >= 12 ? "PM" : "AM";
-  const hour12 = hours % 12 || 12;
-
-  return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
+function formatLabel(value: string) {
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
-function calculateEndTime(
-  startTime: string | null,
-  durationMinutes: number,
-) {
-  if (!startTime) {
-    return "—";
-  }
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
 
-  const [hours, minutes] = startTime.split(":").map(Number);
+  return date.toLocaleString("en-PH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
-  if (
-    !Number.isInteger(hours) ||
-    !Number.isInteger(minutes)
-  ) {
-    return "—";
-  }
+function formatBookingDate(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("en-PH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function formatTime(value: string | null) {
+  if (!value) return "—";
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return value;
 
   const date = new Date();
-
   date.setHours(hours, minutes, 0, 0);
-  date.setMinutes(date.getMinutes() + durationMinutes);
-
-  const endTime = `${String(date.getHours()).padStart(
-    2,
-    "0",
-  )}:${String(date.getMinutes()).padStart(2, "0")}`;
-
-  return formatTime(endTime);
+  return date.toLocaleTimeString("en-PH", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function formatDuration(minutes: number) {
   const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (remainingMinutes === 0) {
-    return `${hours} ${hours === 1 ? "hour" : "hours"}`;
-  }
-
-  return `${hours}h ${remainingMinutes}m`;
+  const remainder = minutes % 60;
+  if (!remainder) return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+  return `${hours}h ${remainder}m`;
 }
 
-function getBookerName(
-  firstName: string | null | undefined,
-  lastName: string | null | undefined,
-  email: string | null | undefined,
-) {
-  const name = [firstName, lastName]
-    .filter(Boolean)
-    .join(" ");
+function calculateEndTime(startTime: string | null, duration: number) {
+  if (!startTime) return "—";
+  const [hours, minutes] = startTime.split(":").map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return "—";
 
-  return name || email || "Unknown customer";
+  const date = new Date();
+  date.setHours(hours, minutes + duration, 0, 0);
+  return date.toLocaleTimeString("en-PH", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatCurrency(value: number | string | null | undefined) {
+  const amount = Number(value ?? 0);
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(Number.isFinite(amount) ? amount : 0);
+}
+
+function getCustomerName(booking: AdminBooking) {
+  const profile = booking.user_profile;
+  return (
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
+    profile?.email ||
+    "Unknown customer"
+  );
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function createReceiptHtml(booking: AdminBooking) {
+  const payment = booking.payment;
+  const receiptNumber = `PBR-${String(booking.booking_id).padStart(6, "0")}`;
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${receiptNumber}</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #1f2937; margin: 0; padding: 36px; }
+    .receipt { max-width: 760px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; border-bottom: 3px solid #38bdf8; padding-bottom: 20px; }
+    h1 { margin: 0; color: #0ea5e9; } h2 { margin: 4px 0 0; font-size: 16px; }
+    .meta { text-align: right; font-size: 13px; line-height: 1.6; }
+    .section { margin-top: 28px; } .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .item { background: #f8fafc; border-radius: 10px; padding: 14px; }
+    .label { color: #64748b; font-size: 11px; text-transform: uppercase; }
+    .value { margin-top: 5px; font-weight: 700; }
+    .total { margin-top: 24px; padding: 18px; background: #ecfeff; text-align: right; font-size: 21px; font-weight: 700; }
+    .footer { margin-top: 34px; border-top: 1px solid #e5e7eb; padding-top: 16px; color: #64748b; font-size: 12px; }
+    @media print { body { padding: 0; } .receipt { max-width: none; } }
+  </style>
+</head>
+<body>
+  <main class="receipt">
+    <header class="header">
+      <div><h1>PawBorrow</h1><h2>Booking Receipt</h2></div>
+      <div class="meta"><strong>${receiptNumber}</strong><br/>Issued ${escapeHtml(formatDate(new Date().toISOString()))}</div>
+    </header>
+    <section class="section grid">
+      <div class="item"><div class="label">Customer</div><div class="value">${escapeHtml(getCustomerName(booking))}</div></div>
+      <div class="item"><div class="label">Email</div><div class="value">${escapeHtml(booking.user_profile?.email ?? "—")}</div></div>
+      <div class="item"><div class="label">Pet</div><div class="value">${escapeHtml(booking.pet?.name ?? "Unknown pet")}</div></div>
+      <div class="item"><div class="label">Breed</div><div class="value">${escapeHtml(booking.pet?.breed ?? "Not specified")}</div></div>
+      <div class="item"><div class="label">Schedule</div><div class="value">${escapeHtml(formatBookingDate(booking.reservation_date))}, ${escapeHtml(formatTime(booking.time_slot))}</div></div>
+      <div class="item"><div class="label">Duration</div><div class="value">${escapeHtml(formatDuration(booking.duration_minutes))}</div></div>
+      <div class="item"><div class="label">Payment method</div><div class="value">${escapeHtml(payment?.payment_method ?? "—")}</div></div>
+      <div class="item"><div class="label">Transaction reference</div><div class="value">${escapeHtml(payment?.transaction_reference ?? "—")}</div></div>
+      <div class="item"><div class="label">Payment status</div><div class="value">${escapeHtml(formatLabel(payment?.payment_status ?? "unknown"))}</div></div>
+      <div class="item"><div class="label">Booking status</div><div class="value">${escapeHtml(formatLabel(booking.status))}</div></div>
+    </section>
+    <div class="total">Total paid: ${escapeHtml(formatCurrency(payment?.amount))}</div>
+    <footer class="footer">This receipt confirms a PawBorrow pet companionship booking. It is not a shipping invoice or packing slip.</footer>
+  </main>
+</body>
+</html>`;
+}
+
+function printReceipt(booking: AdminBooking) {
+  const printWindow = window.open("", "_blank", "width=900,height=760");
+  if (!printWindow) {
+    window.alert("Allow pop-ups to print the receipt.");
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(createReceiptHtml(booking));
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.setTimeout(() => printWindow.print(), 250);
+}
+
+function downloadReceipt(booking: AdminBooking) {
+  const blob = new Blob([createReceiptHtml(booking)], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `pawborrow-receipt-${booking.booking_id}.html`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 export default function Bookings() {
   const {
-    data: bookings,
+    data: bookings = [],
     isLoading,
     error,
+    refetch,
+    isFetching,
   } = useAdminBookings();
-
-  const updateBooking = useUpdateBooking();
-
-  const rescheduleBooking =
-    useAdminRescheduleBooking();
-
   const now = useCurrentTime();
+  const updateBooking = useUpdateBookingOperations();
+  const updateRefund = useUpdateRefund();
+  const rescheduleBooking = useAdminRescheduleBooking();
 
-  const {
-    data: totalBookings = 0,
-    isLoading: totalBookingsLoading,
-  } = useTotalBooking();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
+  const [refundStatus, setRefundStatus] = useState<RefundStatus>("none");
+  const [refundAmount, setRefundAmount] = useState("");
+  const [refundReason, setRefundReason] = useState("");
+  const [actionError, setActionError] = useState("");
 
-  const [selectedId, setSelectedId] =
-    useState<number | null>(null);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("09:00");
+  const [rescheduleDuration, setRescheduleDuration] = useState(60);
 
   const selected =
-    bookings?.find(
-      (booking) =>
-        booking.booking_id === selectedId,
-    ) ?? null;
+    bookings.find((booking) => booking.booking_id === selectedId) ?? null;
 
-  /*
-   * These statistics are based on the bookings currently
-   * returned by useAdminBookings().
-   *
-   * If completed bookings are filtered out inside
-   * getAdminBookings(), totalBookings above still contains
-   * them because it comes from getTotalBookings().
-   */
-  const pendingBookings =
-    bookings?.filter(
-      (booking) =>
-        booking.status.toLowerCase() === "pending",
-    ).length ?? 0;
+  const filteredBookings = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
 
-  const today = getTodayDate();
+    return bookings.filter((booking) => {
+      if (
+        statusFilter !== "all" &&
+        booking.status.toLowerCase() !== statusFilter
+      ) {
+        return false;
+      }
 
-  const todayBookings =
-    bookings?.filter(
-      (booking) =>
-        booking.reservation_date === today,
-    ) ?? [];
+      if (!search) return true;
 
-  const inProgressBookings =
-    bookings?.filter(
-      (booking) =>
-        getBookingDisplayStatus(
-          booking,
-          now,
-        ) === "in_progress",
-    ) ?? [];
+      return [
+        booking.booking_id,
+        booking.pet?.name ?? "",
+        booking.pet?.breed ?? "",
+        getCustomerName(booking),
+        booking.user_profile?.email ?? "",
+        booking.payment?.transaction_reference ?? "",
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    });
+  }, [bookings, searchTerm, statusFilter]);
 
-  const [rescheduleOpen, setRescheduleOpen] =
-    useState(false);
+  const counts = useMemo(
+    () => ({
+      total: bookings.length,
+      pending: bookings.filter((item) => item.status === "pending").length,
+      confirmed: bookings.filter((item) => item.status === "confirmed").length,
+      completed: bookings.filter((item) => item.status === "completed").length,
+      refunds: bookings.filter(
+        (item) => item.payment && item.payment.refund_status !== "none",
+      ).length,
+    }),
+    [bookings],
+  );
 
-  const [rescheduleDate, setRescheduleDate] =
-    useState("");
+  function openDetails(booking: AdminBooking) {
+    setSelectedId(booking.booking_id);
+    setCancellationReason(booking.cancellation_reason ?? "");
+    setAdminNotes(booking.admin_notes ?? "");
+    setRefundStatus(booking.payment?.refund_status ?? "none");
+    setRefundAmount(
+      booking.payment?.refund_amount == null
+        ? ""
+        : String(booking.payment.refund_amount),
+    );
+    setRefundReason(booking.payment?.refund_reason ?? "");
+    setActionError("");
+  }
 
-  const [rescheduleTime, setRescheduleTime] =
-    useState("09:00");
+  function closeDetails() {
+    if (updateBooking.isPending || updateRefund.isPending) return;
+    setSelectedId(null);
+    setActionError("");
+  }
 
-  const [rescheduleDuration, setRescheduleDuration] =
-    useState(60);
-
-  const [
-    rescheduleBookingId,
-    setRescheduleBookingId,
-  ] = useState<number | null>(null);
-
-  function handleOpenReschedule(
-    booking: AdminBooking,
-  ) {
-    const status =
-      booking.status.toLowerCase();
-
-    if (
-      status === "completed" ||
-      status === "cancelled"
-    ) {
+  function changeStatus(status: BookingStatus) {
+    if (!selected) return;
+    if (status === "cancelled" && !cancellationReason.trim()) {
+      setActionError("Enter a cancellation reason before cancelling.");
       return;
     }
 
-    setRescheduleBookingId(
-      booking.booking_id,
-    );
-
-    setRescheduleDate(
-      booking.reservation_date,
-    );
-
-    setRescheduleTime(
-      booking.time_slot ?? "09:00",
-    );
-
-    setRescheduleDuration(
-      booking.duration_minutes ?? 60,
-    );
-
-    setRescheduleOpen(true);
-  }
-
-  function handleCloseReschedule() {
-    setRescheduleOpen(false);
-    setRescheduleBookingId(null);
-  }
-
-  function handleDecreaseDuration() {
-    setRescheduleDuration(
-      (current) =>
-        current <= 60
-          ? 60
-          : current - 15,
-    );
-  }
-
-  function handleIncreaseDuration() {
-    setRescheduleDuration(
-      (current) => current + 15,
-    );
-  }
-
-  function handleReschedule() {
-    if (rescheduleBookingId === null) {
-      return;
-    }
-
-    if (
-      !rescheduleDate ||
-      !rescheduleTime
-    ) {
-      return;
-    }
-
-    if (
-      rescheduleDuration < 60 ||
-      rescheduleDuration % 15 !== 0
-    ) {
-      return;
-    }
-
-    rescheduleBooking.mutate(
-      {
-        bookingId: rescheduleBookingId,
-        reservationDate: rescheduleDate,
-        timeSlot: rescheduleTime,
-        durationMinutes:
-          rescheduleDuration,
-      },
-      {
-        onSuccess: () => {
-          handleCloseReschedule();
-          setSelectedId(null);
-        },
-
-        onError: (error) => {
-          console.error(
-            "Failed to reschedule booking:",
-            error,
-          );
-        },
-      },
-    );
-  }
-
-  function handleStatusChange(
-    status:
-      | "confirmed"
-      | "cancelled"
-      | "completed",
-  ) {
-    if (!selected) {
-      return;
-    }
-
+    setActionError("");
     updateBooking.mutate(
       {
         bookingId: selected.booking_id,
         status,
+        cancellationReason:
+          status === "cancelled" ? cancellationReason : undefined,
       },
       {
-        onSuccess: () => {
-          setSelectedId(null);
-        },
-
-        onError: (error) => {
-          console.error(
-            "Failed to update booking status:",
-            error,
-          );
-        },
+        onError: (cause) =>
+          setActionError(
+            cause instanceof Error
+              ? cause.message
+              : "Could not update booking.",
+          ),
       },
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex-1 bg-gray-50">
-        <Header title="Bookings" />
+  function saveNotes() {
+    if (!selected) return;
+    setActionError("");
+    updateBooking.mutate(
+      { bookingId: selected.booking_id, adminNotes },
+      {
+        onError: (cause) =>
+          setActionError(
+            cause instanceof Error ? cause.message : "Could not save notes.",
+          ),
+      },
+    );
+  }
 
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-sm text-red-500">
-            Failed to load bookings:{" "}
-            {error instanceof Error
-              ? error.message
-              : String(error)}
-          </p>
-        </div>
-      </div>
+  function saveRefund() {
+    if (!selected?.payment) return;
+    const amount = refundAmount.trim() ? Number(refundAmount) : null;
+
+    if (amount !== null && (!Number.isFinite(amount) || amount < 0)) {
+      setActionError("Enter a valid refund amount.");
+      return;
+    }
+
+    if (amount !== null && amount > Number(selected.payment.amount)) {
+      setActionError("Refund amount cannot exceed the amount paid.");
+      return;
+    }
+
+    if (refundStatus !== "none" && !refundReason.trim()) {
+      setActionError("Enter a reason for this refund update.");
+      return;
+    }
+
+    setActionError("");
+    updateRefund.mutate(
+      {
+        paymentId: selected.payment.payment_id,
+        refundStatus,
+        refundAmount: amount,
+        refundReason,
+      },
+      {
+        onError: (cause) =>
+          setActionError(
+            cause instanceof Error ? cause.message : "Could not update refund.",
+          ),
+      },
+    );
+  }
+
+  function openReschedule() {
+    if (!selected) return;
+    setRescheduleDate(selected.reservation_date);
+    setRescheduleTime(selected.time_slot ?? "09:00");
+    setRescheduleDuration(selected.duration_minutes);
+    setRescheduleOpen(true);
+  }
+
+  function saveReschedule() {
+    if (!selected || !rescheduleDate || !rescheduleTime) return;
+    rescheduleBooking.mutate(
+      {
+        bookingId: selected.booking_id,
+        reservationDate: rescheduleDate,
+        timeSlot: rescheduleTime,
+        durationMinutes: rescheduleDuration,
+      },
+      {
+        onSuccess: () => setRescheduleOpen(false),
+        onError: (cause) =>
+          setActionError(
+            cause instanceof Error ? cause.message : "Could not reschedule.",
+          ),
+      },
     );
   }
 
   return (
-    <div className="flex-1 bg-gray-50">
-      <Header title="Bookings" />
+    <div className="min-h-screen flex-1 bg-gray-50">
+      <Header title="BOOKING MANAGEMENT" />
 
-      <div className="p-8">
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-base font-bold text-gray-800">
-            Bookings
-          </h2>
-
-          {/* =========================
-              STATISTICS
-          ========================== */}
-
-          <div className="mb-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
-
-            {/* TOTAL BOOKINGS */}
-            <div className="flex items-center gap-3">
-              <MiniBars
-                heights={[
-                  35,
-                  55,
-                  40,
-                  90,
-                  60,
-                ]}
-                highlightColor="#EC4899"
-              />
-
-              <div>
-                <p className="text-xs text-gray-500">
-                  Total Bookings
-                </p>
-
-                <p className="text-lg font-bold text-gray-800">
-                  {totalBookingsLoading
-                    ? "..."
-                    : totalBookings}
-
-                  <span className="text-xs font-normal text-gray-400">
-                    {" "}
-                    Total
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            {/* ONLINE BOOKINGS */}
-            <div className="flex items-center gap-3">
-              <MiniBars
-                heights={[
-                  30,
-                  45,
-                  35,
-                  70,
-                  50,
-                ]}
-                highlightColor="#34D399"
-              />
-
-              <div>
-                <p className="text-xs text-gray-500">
-                  Online Bookings
-                </p>
-
-                <p className="text-lg font-bold text-gray-800">
-                  {totalBookingsLoading
-                    ? "..."
-                    : totalBookings}
-
-                  <span className="text-xs font-normal text-gray-400">
-                    {" "}
-                    Total
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            {/* PENDING */}
-            <div className="flex items-center gap-3">
-              <CircularProgress
-                percent={
-                  totalBookings > 0
-                    ? (pendingBookings /
-                        totalBookings) *
-                      100
-                    : 0
-                }
-                color="#34D399"
-              />
-
-              <div>
-                <p className="text-xs text-gray-500">
-                  Pending Approval
-                </p>
-
-                <p className="text-lg font-bold text-gray-800">
-                  {pendingBookings}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* =========================
-              UPCOMING APPOINTMENTS
-          ========================== */}
-
-          <h3 className="mb-4 text-sm font-bold text-gray-800">
-            Upcoming Appointments
-          </h3>
-
-          {isLoading && (
-            <p className="py-8 text-center text-sm text-gray-400">
-              Loading bookings...
-            </p>
-          )}
-
-          {!isLoading &&
-            bookings &&
-            bookings.length === 0 && (
-              <p className="py-8 text-center text-sm text-gray-400">
-                No bookings found.
-              </p>
-            )}
-
-          {!isLoading &&
-            bookings &&
-            bookings.length > 0 && (
-              <div className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {bookings.map((booking) => {
-                  const pet = booking.pet;
-                  const profile =
-                    booking.user_profile;
-
-                  const booker =
-                    getBookerName(
-                      profile?.first_name,
-                      profile?.last_name,
-                      profile?.email,
-                    );
-
-                  const displayStatus =
-                    getBookingDisplayStatus(
-                      booking,
-                      now,
-                    );
-
-                  const status =
-                    displayStatus.toLowerCase();
-
-                  return (
-                    <div
-                      key={
-                        booking.booking_id
-                      }
-                      className="rounded-xl border border-gray-100 p-4 shadow-sm"
-                    >
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          {pet?.image_url ? (
-                            <img
-                              src={
-                                pet.image_url
-                              }
-                              alt={pet.name}
-                              className="h-9 w-9 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-9 w-9 rounded-full bg-gray-200" />
-                          )}
-
-                          <div>
-                            <p className="text-sm font-semibold text-gray-800">
-                              {pet?.name ??
-                                "Unknown pet"}
-                            </p>
-
-                            <p className="text-xs text-sky-500">
-                              Booker:{" "}
-                              {booker}
-                            </p>
-                          </div>
-                        </div>
-
-                        <span
-                          className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                            statusStyles[
-                              status
-                            ] ??
-                            "bg-gray-200 text-gray-700"
-                          }`}
-                        >
-                          {displayStatus ===
-                          "in_progress"
-                            ? "In Progress"
-                            : displayStatus
-                                .charAt(0)
-                                .toUpperCase() +
-                              displayStatus.slice(
-                                1,
-                              )}
-                        </span>
-                      </div>
-
-                      <div className="mb-3 flex justify-between text-xs">
-                        <div>
-                          <p className="text-sky-500">
-                            Session Start
-                          </p>
-
-                          <p className="text-gray-500">
-                            {formatTime(
-                              booking.time_slot,
-                            )}
-                          </p>
-                        </div>
-
-                        <div className="text-right">
-                          <p className="text-sky-500">
-                            Session End
-                          </p>
-
-                          <p className="text-gray-500">
-                            {calculateEndTime(
-                              booking.time_slot,
-                              booking.duration_minutes,
-                            )}
-                          </p>
-                        </div>
-                      </div>
-
-                      <p className="mb-3 text-xs text-gray-400">
-                        {
-                          booking.reservation_date
-                        }
-                      </p>
-
-                      <button
-                        onClick={() =>
-                          setSelectedId(
-                            booking.booking_id,
-                          )
-                        }
-                        className="w-full rounded-lg border border-gray-200 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"
-                      >
-                        VIEW DETAILS
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-          {/* =========================
-              IN PROGRESS
-          ========================== */}
-
-          <div className="mb-6">
-            <h3 className="mb-2 text-sm font-bold text-gray-800">
-              In progress
-            </h3>
-
-            {inProgressBookings.length ===
-            0 ? (
-              <p className="text-xs text-gray-400">
-                No sessions currently in
-                progress.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {inProgressBookings.map(
-                  (booking) => (
-                    <div
-                      key={
-                        booking.booking_id
-                      }
-                      className="rounded-lg border border-emerald-100 bg-emerald-50 p-3"
-                    >
-                      <p className="text-sm font-semibold text-gray-800">
-                        {booking.pet?.name ??
-                          "Unknown pet"}
-                      </p>
-
-                      <p className="text-xs text-gray-500">
-                        {formatTime(
-                          booking.time_slot,
-                        )}{" "}
-                        –{" "}
-                        {calculateEndTime(
-                          booking.time_slot,
-                          booking.duration_minutes,
-                        )}
-                      </p>
-
-                      <p className="mt-1 text-xs font-medium text-emerald-600">
-                        Currently in progress
-                      </p>
-                    </div>
-                  ),
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* =========================
-              TODAY
-          ========================== */}
-
+      <main className="p-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 className="mb-2 text-sm font-bold text-gray-800">
-              Today
-            </h3>
-
-            {todayBookings.length === 0 ? (
-              <p className="text-xs text-gray-400">
-                No sessions scheduled for
-                today.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {todayBookings.map(
-                  (booking) => {
-                    const displayStatus =
-                      getBookingDisplayStatus(
-                        booking,
-                        now,
-                      );
-
-                    return (
-                      <div
-                        key={
-                          booking.booking_id
-                        }
-                        className="rounded-lg border border-gray-100 bg-gray-50 p-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-semibold text-gray-800">
-                              {booking.pet
-                                ?.name ??
-                                "Unknown pet"}
-                            </p>
-
-                            <p className="text-xs text-gray-500">
-                              {formatTime(
-                                booking.time_slot,
-                              )}{" "}
-                              –{" "}
-                              {calculateEndTime(
-                                booking.time_slot,
-                                booking.duration_minutes,
-                              )}
-                            </p>
-                          </div>
-
-                          <span
-                            className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                              statusStyles[
-                                displayStatus
-                              ] ??
-                              "bg-gray-200 text-gray-700"
-                            }`}
-                          >
-                            {displayStatus ===
-                            "in_progress"
-                              ? "In Progress"
-                              : displayStatus
-                                  .charAt(0)
-                                  .toUpperCase() +
-                                displayStatus.slice(
-                                  1,
-                                )}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  },
-                )}
-              </div>
-            )}
+            <h1 className="text-xl font-bold text-gray-800">Bookings</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage appointments, payments, receipts, cancellations, and
+              refunds.
+            </p>
           </div>
-        </div>
-      </div>
 
-      {/* =========================
-          DETAILS MODAL
-      ========================== */}
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-sm disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
+            Refresh
+          </button>
+        </div>
+
+        <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {[
+            ["Total", counts.total],
+            ["Pending", counts.pending],
+            ["Confirmed", counts.confirmed],
+            ["Completed", counts.completed],
+            ["Refund cases", counts.refunds],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                {label}
+              </p>
+              <p className="mt-2 text-2xl font-bold text-gray-800">{value}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="mb-6 grid gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm md:grid-cols-[1fr_auto]">
+          <label className="relative">
+            <Search
+              size={17}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search customer, pet, booking, or transaction..."
+              className="w-full rounded-xl border border-gray-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            />
+          </label>
+
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-sky-400"
+          >
+            <option value="all">All booking statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </section>
+
+        {isLoading && (
+          <p className="rounded-2xl bg-white p-10 text-center text-sm text-gray-500">
+            Loading bookings...
+          </p>
+        )}
+
+        {error && (
+          <p className="rounded-2xl border border-red-100 bg-red-50 p-6 text-sm text-red-600">
+            {error instanceof Error
+              ? error.message
+              : "Could not load bookings."}
+          </p>
+        )}
+
+        {!isLoading && !error && filteredBookings.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
+            <CalendarClock size={36} className="mx-auto text-gray-300" />
+            <p className="mt-3 font-semibold text-gray-700">
+              No bookings found
+            </p>
+          </div>
+        )}
+
+        {!isLoading && !error && filteredBookings.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-400">
+                  <tr>
+                    <th className="px-5 py-4">Booking</th>
+                    <th className="px-5 py-4">Customer</th>
+                    <th className="px-5 py-4">Schedule</th>
+                    <th className="px-5 py-4">Payment</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4">Refund</th>
+                    <th className="px-5 py-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredBookings.map((booking) => {
+                    const displayStatus = getBookingDisplayStatus(booking, now);
+                    return (
+                      <tr
+                        key={booking.booking_id}
+                        className="hover:bg-gray-50/70"
+                      >
+                        <td className="px-5 py-4">
+                          <p className="font-semibold text-gray-800">
+                            #{booking.booking_id} ·{" "}
+                            {booking.pet?.name ?? "Unknown pet"}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-400">
+                            {booking.pet?.breed ?? "Breed not specified"}
+                          </p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-medium text-gray-700">
+                            {getCustomerName(booking)}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-400">
+                            {booking.user_profile?.email ?? "—"}
+                          </p>
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-4 text-gray-600">
+                          <p>{formatBookingDate(booking.reservation_date)}</p>
+                          <p className="mt-1 text-xs text-gray-400">
+                            {formatTime(booking.time_slot)} ·{" "}
+                            {formatDuration(booking.duration_minutes)}
+                          </p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-semibold text-gray-700">
+                            {formatCurrency(booking.payment?.amount)}
+                          </p>
+                          <p className="mt-1 font-mono text-xs text-gray-400">
+                            {booking.payment?.transaction_reference ??
+                              "No reference"}
+                          </p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[displayStatus] ?? statusStyles.pending}`}
+                          >
+                            {formatLabel(displayStatus)}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${refundStyles[booking.payment?.refund_status ?? "none"]}`}
+                          >
+                            {formatLabel(
+                              booking.payment?.refund_status ?? "none",
+                            )}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => openDetails(booking)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                          >
+                            <Eye size={14} /> View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
 
       <Modal
-        isOpen={selected !== null}
-        onClose={() =>
-          setSelectedId(null)
-        }
-        title={
-          selected
-            ? `${selected.pet?.name ?? "Pet"}'s Appointment`
-            : undefined
-        }
+        isOpen={Boolean(selected)}
+        onClose={closeDetails}
+        title={selected ? `Booking #${selected.booking_id}` : undefined}
       >
         {selected && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              {selected.pet?.image_url ? (
-                <img
-                  src={selected.pet.image_url}
-                  alt={
-                    selected.pet.name
-                  }
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-full bg-gray-200" />
-              )}
-
-              <div>
-                <p className="font-semibold text-gray-800">
-                  {selected.pet?.name ??
-                    "Unknown pet"}
-                </p>
-
-                <p className="text-sm text-sky-500">
-                  Booker:{" "}
-                  {getBookerName(
-                    selected.user_profile
-                      ?.first_name,
-                    selected.user_profile
-                      ?.last_name,
-                    selected.user_profile
-                      ?.email,
-                  )}
-                </p>
-              </div>
-
-              <span
-                className={`ml-auto rounded-full px-3 py-1 text-xs font-semibold ${
-                  statusStyles[
-                    getBookingDisplayStatus(
-                      selected,
-                      now,
-                    )
-                  ] ??
-                  "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {getBookingDisplayStatus(
-                  selected,
-                  now,
-                ) === "in_progress"
-                  ? "In Progress"
-                  : getBookingDisplayStatus(
-                      selected,
-                      now,
-                    )
-                      .charAt(0)
-                      .toUpperCase() +
-                    getBookingDisplayStatus(
-                      selected,
-                      now,
-                    ).slice(1)}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-4 text-sm">
-              <div>
-                <p className="text-xs text-sky-500">
-                  Session Start
-                </p>
-
-                <p className="font-medium text-gray-700">
-                  {formatTime(
-                    selected.time_slot,
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-sky-500">
-                  Session End
-                </p>
-
-                <p className="font-medium text-gray-700">
-                  {calculateEndTime(
-                    selected.time_slot,
-                    selected.duration_minutes,
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase text-gray-400">
-                Booking Date
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {selected.reservation_date}
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase text-gray-400">
-                Duration
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {formatDuration(
-                  selected.duration_minutes,
-                )}
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase text-gray-400">
-                Pet
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {selected.pet?.name ??
-                  "Unknown pet"}
-              </p>
-
-              <p className="text-xs text-gray-400">
-                {selected.pet?.breed ??
-                  "Unknown breed"}
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase text-gray-400">
-                Customer Email
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {selected.user_profile
-                  ?.email ??
-                  "No email"}
-              </p>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              {selected.status.toLowerCase() ===
-                "pending" && (
-                <button
-                  onClick={() =>
-                    handleStatusChange(
-                      "confirmed",
-                    )
-                  }
-                  disabled={
-                    updateBooking.isPending
-                  }
-                  className="flex-1 rounded-lg bg-emerald-500 py-2 text-sm font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+          <div className="max-h-[78vh] space-y-6 overflow-y-auto pr-1 text-sm">
+            <section className="rounded-2xl bg-sky-50 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-lg font-bold text-gray-800">
+                    {selected.pet?.name ?? "Unknown pet"}
+                  </p>
+                  <p className="text-gray-500">
+                    Booked by {getCustomerName(selected)}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[getBookingDisplayStatus(selected, now)] ?? statusStyles.pending}`}
                 >
-                  {updateBooking.isPending
-                    ? "Updating..."
-                    : "Approve"}
-                </button>
+                  {formatLabel(getBookingDisplayStatus(selected, now))}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs text-gray-400">Date</p>
+                  <p className="font-semibold text-gray-700">
+                    {formatBookingDate(selected.reservation_date)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Time</p>
+                  <p className="font-semibold text-gray-700">
+                    {formatTime(selected.time_slot)}–
+                    {calculateEndTime(
+                      selected.time_slot,
+                      selected.duration_minutes,
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Duration</p>
+                  <p className="font-semibold text-gray-700">
+                    {formatDuration(selected.duration_minutes)}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="font-bold text-gray-800">Payment and receipt</h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => printReceipt(selected)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                  >
+                    <Printer size={14} /> Print
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadReceipt(selected)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-600"
+                  >
+                    <Download size={14} /> Download
+                  </button>
+                </div>
+              </div>
+              <div className="grid gap-3 rounded-xl border border-gray-100 p-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs text-gray-400">Amount paid</p>
+                  <p className="font-bold text-gray-800">
+                    {formatCurrency(selected.payment?.amount)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Payment status</p>
+                  <p className="font-semibold text-gray-700">
+                    {formatLabel(selected.payment?.payment_status ?? "unknown")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Payment method</p>
+                  <p className="font-semibold text-gray-700">
+                    {selected.payment?.payment_method ?? "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Transaction date</p>
+                  <p className="font-semibold text-gray-700">
+                    {formatDate(selected.payment?.transaction_date)}
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-gray-400">Transaction reference</p>
+                  <p className="break-all font-mono font-semibold text-gray-700">
+                    {selected.payment?.transaction_reference ?? "—"}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 font-bold text-gray-800">Booking actions</h3>
+              <div className="space-y-3 rounded-xl border border-gray-100 p-4">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-gray-500">
+                    Cancellation reason
+                  </span>
+                  <textarea
+                    value={cancellationReason}
+                    onChange={(event) =>
+                      setCancellationReason(event.target.value)
+                    }
+                    rows={2}
+                    placeholder="Required when cancelling a booking"
+                    className="w-full resize-y rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-sky-400"
+                  />
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {selected.status === "pending" && (
+                    <button
+                      type="button"
+                      onClick={() => changeStatus("confirmed")}
+                      disabled={updateBooking.isPending}
+                      className="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {selected.status !== "completed" &&
+                    selected.status !== "cancelled" && (
+                      <button
+                        type="button"
+                        onClick={() => changeStatus("completed")}
+                        disabled={updateBooking.isPending}
+                        className="rounded-lg bg-slate-700 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        Mark completed
+                      </button>
+                    )}
+                  {selected.status !== "completed" &&
+                    selected.status !== "cancelled" && (
+                      <button
+                        type="button"
+                        onClick={openReschedule}
+                        disabled={rescheduleBooking.isPending}
+                        className="rounded-lg bg-sky-500 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        Reschedule
+                      </button>
+                    )}
+                  {selected.status !== "cancelled" && (
+                    <button
+                      type="button"
+                      onClick={() => changeStatus("cancelled")}
+                      disabled={updateBooking.isPending}
+                      className="rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      Cancel booking
+                    </button>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 font-bold text-gray-800">
+                Refund management
+              </h3>
+              {selected.payment ? (
+                <div className="grid gap-3 rounded-xl border border-gray-100 p-4 sm:grid-cols-2">
+                  <label>
+                    <span className="mb-1 block text-xs font-semibold text-gray-500">
+                      Refund status
+                    </span>
+                    <select
+                      value={refundStatus}
+                      onChange={(event) =>
+                        setRefundStatus(event.target.value as RefundStatus)
+                      }
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                    >
+                      <option value="none">None</option>
+                      <option value="requested">Requested</option>
+                      <option value="processing">Processing</option>
+                      <option value="completed">Completed</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-semibold text-gray-500">
+                      Refund amount
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      max={Number(selected.payment.amount)}
+                      value={refundAmount}
+                      onChange={(event) => setRefundAmount(event.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="sm:col-span-2">
+                    <span className="mb-1 block text-xs font-semibold text-gray-500">
+                      Refund reason
+                    </span>
+                    <textarea
+                      value={refundReason}
+                      onChange={(event) => setRefundReason(event.target.value)}
+                      rows={2}
+                      className="w-full resize-y rounded-lg border border-gray-200 p-3 text-sm"
+                    />
+                  </label>
+                  <div className="sm:col-span-2 flex items-center justify-between gap-3">
+                    <p className="text-xs text-gray-400">
+                      Refunded: {formatDate(selected.payment.refunded_at)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={saveRefund}
+                      disabled={updateRefund.isPending}
+                      className="rounded-lg bg-froly-400 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      {updateRefund.isPending ? "Saving..." : "Save refund"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="rounded-xl bg-gray-50 p-4 text-gray-500">
+                  No payment is attached to this booking.
+                </p>
               )}
+            </section>
 
-              {selected.status.toLowerCase() ===
-                "confirmed" &&
-                getBookingDisplayStatus(
-                  selected,
-                  now,
-                ) !== "in_progress" &&
-                getBookingDisplayStatus(
-                  selected,
-                  now,
-                ) !== "completed" && (
-                  <button
-                    onClick={() =>
-                      handleStatusChange(
-                        "completed",
-                      )
-                    }
-                    disabled={
-                      updateBooking.isPending
-                    }
-                    className="flex-1 rounded-lg bg-gray-700 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {updateBooking.isPending
-                      ? "Updating..."
-                      : "Mark Completed"}
-                  </button>
-                )}
+            <section>
+              <h3 className="mb-3 font-bold text-gray-800">Admin notes</h3>
+              <textarea
+                value={adminNotes}
+                onChange={(event) => setAdminNotes(event.target.value)}
+                rows={3}
+                placeholder="Internal notes are visible only to administrators"
+                className="w-full resize-y rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-sky-400"
+              />
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={saveNotes}
+                  disabled={updateBooking.isPending}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 disabled:opacity-50"
+                >
+                  Save notes
+                </button>
+              </div>
+            </section>
 
-              {selected.status.toLowerCase() !==
-                "cancelled" &&
-                selected.status.toLowerCase() !==
-                  "completed" && (
-                  <button
-                    onClick={() =>
-                      handleOpenReschedule(
-                        selected,
-                      )
-                    }
-                    disabled={
-                      updateBooking.isPending ||
-                      rescheduleBooking.isPending
-                    }
-                    className="flex-1 rounded-lg bg-sky-500 py-2 text-sm font-semibold text-white hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+            <section>
+              <h3 className="mb-3 font-bold text-gray-800">Booking history</h3>
+              <div className="space-y-0">
+                {selected.booking_history.map((entry, index) => (
+                  <div
+                    key={entry.history_id}
+                    className="relative flex gap-3 pb-5"
                   >
-                    {rescheduleBooking.isPending
-                      ? "Rescheduling..."
-                      : "Reschedule"}
-                  </button>
+                    {index < selected.booking_history.length - 1 && (
+                      <span className="absolute left-[5px] top-3 h-full w-px bg-gray-200" />
+                    )}
+                    <span className="relative mt-1.5 size-3 shrink-0 rounded-full bg-sky-400 ring-4 ring-sky-50" />
+                    <div>
+                      <p className="font-semibold text-gray-700">
+                        {formatLabel(entry.event_type)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {entry.note ||
+                          (entry.old_status && entry.new_status
+                            ? `${formatLabel(entry.old_status)} → ${formatLabel(entry.new_status)}`
+                            : "Booking updated")}
+                      </p>
+                      <p className="mt-1 text-[11px] text-gray-400">
+                        {formatDate(entry.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {selected.booking_history.length === 0 && (
+                  <p className="rounded-xl bg-gray-50 p-4 text-gray-500">
+                    No history entries yet.
+                  </p>
                 )}
+              </div>
+            </section>
 
-              {selected.status.toLowerCase() !==
-                "cancelled" &&
-                selected.status.toLowerCase() !==
-                  "completed" && (
-                  <button
-                    onClick={() =>
-                      handleStatusChange(
-                        "cancelled",
-                      )
-                    }
-                    disabled={
-                      updateBooking.isPending
-                    }
-                    className="flex-1 rounded-lg bg-rose-500 py-2 text-sm font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {updateBooking.isPending
-                      ? "Updating..."
-                      : "Cancel"}
-                  </button>
-                )}
-            </div>
+            {actionError && (
+              <p
+                className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
+                role="alert"
+              >
+                {actionError}
+              </p>
+            )}
           </div>
         )}
       </Modal>
 
-      {/* =========================
-          RESCHEDULE MODAL
-      ========================== */}
-
       <Modal
         isOpen={rescheduleOpen}
-        onClose={
-          handleCloseReschedule
-        }
-        title="Reschedule Appointment"
+        onClose={() => setRescheduleOpen(false)}
+        title="Reschedule booking"
       >
-        <div className="space-y-5">
-          <div>
-            <label
-              htmlFor="reschedule-date"
-              className="mb-1 block text-sm font-semibold text-gray-700"
-            >
-              Reservation Date
-            </label>
-
+        <div className="space-y-4">
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold text-gray-700">
+              Reservation date
+            </span>
             <input
-              id="reschedule-date"
               type="date"
               value={rescheduleDate}
-              onChange={(event) =>
-                setRescheduleDate(
-                  event.target.value,
-                )
-              }
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
+              onChange={(event) => setRescheduleDate(event.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
-          </div>
-
-          <div>
-            <label
-              htmlFor="reschedule-time"
-              className="mb-1 block text-sm font-semibold text-gray-700"
-            >
-              Start Time
-            </label>
-
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold text-gray-700">
+              Start time
+            </span>
             <input
-              id="reschedule-time"
               type="time"
               value={rescheduleTime}
-              onChange={(event) =>
-                setRescheduleTime(
-                  event.target.value,
-                )
-              }
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
+              onChange={(event) => setRescheduleTime(event.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-700">
-              Duration
-            </label>
-
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
-              <button
-                type="button"
-                onClick={
-                  handleDecreaseDuration
-                }
-                disabled={
-                  rescheduleDuration <=
-                  60
-                }
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-lg text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                −
-              </button>
-
-              <span className="font-semibold text-gray-700">
-                {formatDuration(
-                  rescheduleDuration,
-                )}
-              </span>
-
-              <button
-                type="button"
-                onClick={
-                  handleIncreaseDuration
-                }
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-lg text-gray-600 hover:bg-gray-50"
-              >
-                +
-              </button>
-            </div>
-
-            <p className="mt-1 text-xs text-gray-400">
-              Minimum 1 hour. Additional
-              time is added in 15-minute
-              increments.
-            </p>
-          </div>
-
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold text-gray-700">
+              Duration in minutes
+            </span>
+            <input
+              type="number"
+              min="60"
+              step="15"
+              value={rescheduleDuration}
+              onChange={(event) =>
+                setRescheduleDuration(Number(event.target.value))
+              }
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+          </label>
           <div className="rounded-xl bg-gray-50 p-4">
-            <p className="mb-3 text-xs font-semibold uppercase text-gray-400">
-              New Schedule
+            <p className="text-xs text-gray-400">New schedule</p>
+            <p className="mt-1 font-semibold text-gray-700">
+              {rescheduleDate || "—"} · {formatTime(rescheduleTime)}–
+              {calculateEndTime(rescheduleTime, rescheduleDuration)}
             </p>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-sky-500">
-                  Date
-                </p>
-
-                <p className="text-sm font-medium text-gray-700">
-                  {rescheduleDate ||
-                    "—"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-sky-500">
-                  Duration
-                </p>
-
-                <p className="text-sm font-medium text-gray-700">
-                  {formatDuration(
-                    rescheduleDuration,
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-sky-500">
-                  Start
-                </p>
-
-                <p className="text-sm font-medium text-gray-700">
-                  {formatTime(
-                    rescheduleTime,
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-sky-500">
-                  End
-                </p>
-
-                <p className="text-sm font-medium text-gray-700">
-                  {calculateEndTime(
-                    rescheduleTime,
-                    rescheduleDuration,
-                  )}
-                </p>
-              </div>
-            </div>
           </div>
-
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={
-                handleCloseReschedule
-              }
-              disabled={
-                rescheduleBooking.isPending
-              }
-              className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              onClick={() => setRescheduleOpen(false)}
+              className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-semibold text-gray-600"
             >
-              Cancel
+              Close
             </button>
-
             <button
               type="button"
-              onClick={
-                handleReschedule
-              }
+              onClick={saveReschedule}
               disabled={
                 rescheduleBooking.isPending ||
                 !rescheduleDate ||
                 !rescheduleTime ||
-                rescheduleDuration <
-                  60 ||
-                rescheduleDuration %
-                  15 !==
-                  0
+                rescheduleDuration < 60
               }
-              className="flex-1 rounded-lg bg-sky-500 py-2 text-sm font-semibold text-white hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-lg bg-sky-500 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {rescheduleBooking.isPending
-                ? "Rescheduling..."
-                : "Confirm Reschedule"}
+              {rescheduleBooking.isPending ? "Saving..." : "Save schedule"}
             </button>
           </div>
         </div>

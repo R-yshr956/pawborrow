@@ -1,5 +1,16 @@
-import { useState } from 'react';
-import { ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react';
+import {
+  ChevronDown,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 
 import Header from '../components/Header';
 import DataTable from '../components/DataTable';
@@ -12,11 +23,15 @@ import {
   useDeletePet,
   useUpdatePet,
   useUpdatePetStatus,
+  type Pet,
+  type PetStatus,
 } from '@repo/api';
 
-import type { Pet, PetStatus } from '@repo/api';
-
-const petStatuses: PetStatus[] = ['available', 'unavailable', 'booked'];
+const petStatuses: PetStatus[] = [
+  'available',
+  'unavailable',
+  'booked',
+];
 
 const statusStyles: Record<PetStatus, string> = {
   available: 'bg-emerald-100 text-emerald-600',
@@ -38,38 +53,46 @@ const personalityPalette = [
   'text-amber-500',
 ];
 
-function personalityColor(tag: string) {
+function personalityColor(tag: string): string {
   let hash = 0;
 
-  for (const ch of tag) {
+  for (const character of tag) {
     hash =
-      (hash * 31 + ch.charCodeAt(0)) %
+      (hash * 31 + character.charCodeAt(0)) %
       personalityPalette.length;
   }
 
-  return personalityPalette[hash];
+  return personalityPalette[hash] ?? 'text-gray-500';
 }
+
+type StatusSelectProps = {
+  pet: Pet;
+  onChange: (id: number, status: PetStatus) => void;
+  disabled: boolean;
+};
 
 function StatusSelect({
   pet,
   onChange,
   disabled,
-}: {
-  pet: Pet;
-  onChange: (id: number, status: PetStatus) => void;
-  disabled: boolean;
-}) {
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newStatus = e.target.value as PetStatus;
+}: StatusSelectProps) {
+  function handleChange(
+    event: ChangeEvent<HTMLSelectElement>,
+  ) {
+    const newStatus = event.target.value as PetStatus;
 
-    if (newStatus === pet.status) return;
+    if (newStatus === pet.status) {
+      return;
+    }
 
     if (pet.status === 'booked') {
       const confirmed = window.confirm(
-        `${pet.name} is currently marked as booked. Changing this here won't cancel any real reservation tied to it in the booking table — only do this if you're sure. Continue?`
+        `${pet.name} is currently booked. Changing its status will not cancel any booking connected to it. Continue?`,
       );
 
-      if (!confirmed) return;
+      if (!confirmed) {
+        return;
+      }
     }
 
     onChange(pet.id, newStatus);
@@ -81,11 +104,11 @@ function StatusSelect({
         value={pet.status}
         onChange={handleChange}
         disabled={disabled}
-        className={`cursor-pointer appearance-none rounded-full py-1 pl-3 pr-7 text-xs font-semibold outline-none disabled:opacity-50 ${statusStyles[pet.status]}`}
+        className={`cursor-pointer appearance-none rounded-full py-1 pl-3 pr-7 text-xs font-semibold outline-none disabled:cursor-not-allowed disabled:opacity-50 ${statusStyles[pet.status]}`}
       >
-        {petStatuses.map((s) => (
-          <option key={s} value={s}>
-            {statusLabel[s]}
+        {petStatuses.map((status) => (
+          <option key={status} value={status}>
+            {statusLabel[status]}
           </option>
         ))}
       </select>
@@ -105,6 +128,8 @@ type PetForm = {
   personality: string;
 };
 
+type PetFilter = 'all' | PetStatus;
+
 const emptyForm: PetForm = {
   name: '',
   categoryId: '',
@@ -114,14 +139,14 @@ const emptyForm: PetForm = {
 
 export default function Pets() {
   const {
-    data: pets,
+    data: pets = [],
     isLoading,
     isError,
     error,
   } = useAdminPets();
 
   const {
-    data: categories,
+    data: categories = [],
     isLoading: categoriesLoading,
   } = useCategories();
 
@@ -130,18 +155,77 @@ export default function Pets() {
   const updatePet = useUpdatePet();
   const deletePet = useDeletePet();
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [petFilter, setPetFilter] =
+    useState<PetFilter>('all');
 
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [isCreateOpen, setIsCreateOpen] =
+    useState(false);
 
-  const [form, setForm] = useState<PetForm>(emptyForm);
+  const [isEditOpen, setIsEditOpen] =
+    useState(false);
+
+  const [selectedPet, setSelectedPet] =
+    useState<Pet | null>(null);
+
+  const [form, setForm] =
+    useState<PetForm>(emptyForm);
+
+  const filteredPets = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+
+    return pets.filter((pet) => {
+      const matchesFilter =
+        petFilter === 'all' ||
+        pet.status === petFilter;
+
+      if (!matchesFilter) {
+        return false;
+      }
+
+      if (!search) {
+        return true;
+      }
+
+      const searchableText = [
+        String(pet.id),
+        pet.name,
+        pet.category,
+        pet.breed ?? '',
+        pet.status,
+        ...pet.personality,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [pets, searchTerm, petFilter]);
+
+  const petFilterCounts = useMemo(
+    () => ({
+      all: pets.length,
+      available: pets.filter(
+        (pet) => pet.status === 'available',
+      ).length,
+      unavailable: pets.filter(
+        (pet) => pet.status === 'unavailable',
+      ).length,
+      booked: pets.filter(
+        (pet) => pet.status === 'booked',
+      ).length,
+    }),
+    [pets],
+  );
 
   function handleStatusChange(
     petId: number,
-    status: PetStatus
+    status: PetStatus,
   ) {
-    updateStatus.mutate({ petId, status });
+    updateStatus.mutate({
+      petId,
+      status,
+    });
   }
 
   function openCreateModal() {
@@ -151,7 +235,9 @@ export default function Pets() {
   }
 
   function closeCreateModal() {
-    if (createPet.isPending) return;
+    if (createPet.isPending) {
+      return;
+    }
 
     setIsCreateOpen(false);
     setForm(emptyForm);
@@ -160,14 +246,15 @@ export default function Pets() {
   function openEditModal(pet: Pet) {
     setSelectedPet(pet);
 
-    // Find the category ID using the category name
-    const category = categories?.find(
-      (c) => c.label === pet.category
+    const category = categories.find(
+      (item) => item.label === pet.category,
     );
 
     setForm({
       name: pet.name,
-      categoryId: category ? String(category.id) : '',
+      categoryId: category
+        ? String(category.id)
+        : '',
       breed: pet.breed ?? '',
       personality: pet.personality.join(', '),
     });
@@ -176,7 +263,9 @@ export default function Pets() {
   }
 
   function closeEditModal() {
-    if (updatePet.isPending) return;
+    if (updatePet.isPending) {
+      return;
+    }
 
     setIsEditOpen(false);
     setSelectedPet(null);
@@ -184,11 +273,11 @@ export default function Pets() {
   }
 
   function handleFormChange(
-    e: React.ChangeEvent<
+    event: ChangeEvent<
       HTMLInputElement | HTMLSelectElement
-    >
+    >,
   ) {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
     setForm((current) => ({
       ...current,
@@ -203,8 +292,15 @@ export default function Pets() {
       .filter(Boolean);
   }
 
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
+  function handleCreate(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!form.name.trim()) {
+      window.alert("Please enter the pet's name.");
+      return;
+    }
 
     if (!form.categoryId) {
       window.alert('Please select a category.');
@@ -221,16 +317,26 @@ export default function Pets() {
       },
       {
         onSuccess: () => {
-          closeCreateModal();
+          setIsCreateOpen(false);
+          setForm(emptyForm);
         },
-      }
+      },
     );
   }
 
-  function handleUpdate(e: React.FormEvent) {
-    e.preventDefault();
+  function handleUpdate(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
 
-    if (!selectedPet) return;
+    if (!selectedPet) {
+      return;
+    }
+
+    if (!form.name.trim()) {
+      window.alert("Please enter the pet's name.");
+      return;
+    }
 
     if (!form.categoryId) {
       window.alert('Please select a category.');
@@ -249,18 +355,22 @@ export default function Pets() {
       },
       {
         onSuccess: () => {
-          closeEditModal();
+          setIsEditOpen(false);
+          setSelectedPet(null);
+          setForm(emptyForm);
         },
-      }
+      },
     );
   }
 
   function handleDelete(pet: Pet) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${pet.name}? This action cannot be undone.`
+      `Are you sure you want to delete ${pet.name}? This action cannot be undone.`,
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     deletePet.mutate(pet.id);
   }
@@ -270,8 +380,7 @@ export default function Pets() {
       <Header title="PET INVENTORY" />
 
       <div className="p-8">
-        {/* Header / Add button */}
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold text-gray-800">
               Pet Inventory
@@ -283,12 +392,48 @@ export default function Pets() {
           </div>
 
           <button
+            type="button"
             onClick={openCreateModal}
             className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600"
           >
             <Plus size={17} />
             Add Pet
           </button>
+        </div>
+
+        <div className="mb-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="relative max-w-md">
+            <Search
+              size={17}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+
+            <input
+              type="search"
+              value={searchTerm}
+              placeholder="Search by name, breed, category, status, or personality..."
+              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-10 text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              onChange={(event) =>
+                setSearchTerm(event.target.value)
+              }
+            />
+
+            {searchTerm && (
+              <button
+                type="button"
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400 hover:text-gray-700"
+                onClick={() => setSearchTerm('')}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <p className="mt-2 text-xs text-gray-400">
+            Showing {filteredPets.length} of{' '}
+            {pets.length} pets
+          </p>
         </div>
 
         {isLoading && (
@@ -299,89 +444,152 @@ export default function Pets() {
 
         {isError && (
           <p className="text-sm text-rose-500">
-            Couldn't load pets:{' '}
-            {(error as Error)?.message ?? 'Unknown error'}
+            Couldn&apos;t load pets:{' '}
+            {error instanceof Error
+              ? error.message
+              : 'Unknown error'}
           </p>
         )}
 
         {updateStatus.isError && (
           <p className="mb-3 text-sm text-rose-500">
-            Couldn't update status. You do not have admin permissions.
+            Couldn&apos;t update the status. Check
+            your admin permissions.
           </p>
         )}
 
-        {pets && (
+        {createPet.isError && (
+          <p className="mb-3 text-sm text-rose-500">
+            Couldn&apos;t create the pet:{' '}
+            {createPet.error instanceof Error
+              ? createPet.error.message
+              : 'Unknown error'}
+          </p>
+        )}
+
+        {updatePet.isError && (
+          <p className="mb-3 text-sm text-rose-500">
+            Couldn&apos;t update the pet:{' '}
+            {updatePet.error instanceof Error
+              ? updatePet.error.message
+              : 'Unknown error'}
+          </p>
+        )}
+
+        {deletePet.isError && (
+          <p className="mb-3 text-sm text-rose-500">
+            Couldn&apos;t delete the pet:{' '}
+            {deletePet.error instanceof Error
+              ? deletePet.error.message
+              : 'Unknown error'}
+          </p>
+        )}
+
+        {!isLoading &&
+          !isError &&
+          filteredPets.length === 0 && (
+            <div className="mb-3 rounded-xl border border-gray-100 bg-white p-4 text-center shadow-sm">
+              <p className="text-sm text-gray-500">
+                {searchTerm
+                  ? `No pets match "${searchTerm}".`
+                  : petFilter !== 'all'
+                    ? 'No pets match the selected filter.'
+                    : 'No pets are available.'}
+              </p>
+            </div>
+          )}
+
+        {!isLoading && !isError && (
           <DataTable
-            data={pets}
+            data={filteredPets}
             rowKey={(row) => String(row.id)}
+            filterValue={petFilter}
+            onFilterChange={(value) =>
+              setPetFilter(value as PetFilter)
+            }
+            filterOptions={[
+              {
+                value: 'all',
+                label: 'All',
+                count: petFilterCounts.all,
+              },
+              {
+                value: 'available',
+                label: 'Available',
+                count: petFilterCounts.available,
+              },
+              {
+                value: 'unavailable',
+                label: 'Unavailable',
+                count: petFilterCounts.unavailable,
+              },
+              {
+                value: 'booked',
+                label: 'Booked',
+                count: petFilterCounts.booked,
+              },
+            ]}
             columns={[
               {
                 key: 'id',
                 label: 'Pet ID',
-                render: (r) => (
+                render: (pet) => (
                   <span className="text-gray-400">
-                    #{r.id}
+                    #{pet.id}
                   </span>
                 ),
               },
-
               {
                 key: 'name',
                 label: 'Name',
-                render: (r) => (
+                render: (pet) => (
                   <span className="font-medium text-gray-800">
-                    {r.name}
+                    {pet.name}
                   </span>
                 ),
               },
-
               {
                 key: 'category',
                 label: 'Category',
-                render: (r) => (
+                render: (pet) => (
                   <span className="text-gray-500">
-                    {r.category}
+                    {pet.category}
                   </span>
                 ),
               },
-
               {
                 key: 'breed',
                 label: 'Breed',
-                render: (r) => (
+                render: (pet) => (
                   <span className="text-gray-500">
-                    {r.breed ?? '—'}
+                    {pet.breed ?? '—'}
                   </span>
                 ),
               },
-
               {
                 key: 'hourlyRate',
                 label: 'Rate/hr',
-                render: (r) => (
+                render: (pet) => (
                   <span className="font-semibold text-amber-500">
-                    ₱{r.hourlyRate.toLocaleString()}
+                    ₱{pet.hourlyRate.toLocaleString()}
                   </span>
                 ),
               },
-
               {
                 key: 'personality',
                 label: 'Personality',
-                render: (r) => (
+                render: (pet) => (
                   <div className="flex flex-wrap gap-1">
-                    {r.personality.length === 0 && (
+                    {pet.personality.length === 0 && (
                       <span className="text-gray-400">
                         —
                       </span>
                     )}
 
-                    {r.personality.map((tag) => (
+                    {pet.personality.map((tag) => (
                       <span
                         key={tag}
-                        className={`font-semibold ${personalityColor(
-                          tag
-                        )}`}
+                        className={`font-semibold ${personalityColor(tag)}`}
                       >
                         {tag}
                       </span>
@@ -389,37 +597,39 @@ export default function Pets() {
                   </div>
                 ),
               },
-
               {
                 key: 'status',
                 label: 'Status',
-                render: (r) => (
+                render: (pet) => (
                   <StatusSelect
-                    pet={r}
+                    pet={pet}
                     onChange={handleStatusChange}
                     disabled={updateStatus.isPending}
                   />
                 ),
               },
-
               {
                 key: 'actions',
                 label: 'Actions',
-                render: (r) => (
+                render: (pet) => (
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => openEditModal(r)}
+                      type="button"
+                      onClick={() => openEditModal(pet)}
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-sky-500 hover:bg-sky-50"
                       title="Edit pet"
+                      aria-label={`Edit ${pet.name}`}
                     >
                       <Pencil size={16} />
                     </button>
 
                     <button
-                      onClick={() => handleDelete(r)}
+                      type="button"
+                      onClick={() => handleDelete(pet)}
                       disabled={deletePet.isPending}
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 disabled:opacity-50"
                       title="Delete pet"
+                      aria-label={`Delete ${pet.name}`}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -431,7 +641,6 @@ export default function Pets() {
         )}
       </div>
 
-      {/* CREATE PET */}
       <Modal
         isOpen={isCreateOpen}
         onClose={closeCreateModal}
@@ -443,7 +652,7 @@ export default function Pets() {
         >
           <PetFormFields
             form={form}
-            categories={categories ?? []}
+            categories={categories}
             categoriesLoading={categoriesLoading}
             onChange={handleFormChange}
           />
@@ -466,14 +675,13 @@ export default function Pets() {
               className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 disabled:opacity-50"
             >
               {createPet.isPending
-                ? 'Creating...'
+                ? 'Creating…'
                 : 'Create Pet'}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* EDIT PET */}
       <Modal
         isOpen={isEditOpen}
         onClose={closeEditModal}
@@ -485,7 +693,7 @@ export default function Pets() {
         >
           <PetFormFields
             form={form}
-            categories={categories ?? []}
+            categories={categories}
             categoriesLoading={categoriesLoading}
             onChange={handleFormChange}
           />
@@ -508,7 +716,7 @@ export default function Pets() {
               className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 disabled:opacity-50"
             >
               {updatePet.isPending
-                ? 'Saving...'
+                ? 'Saving…'
                 : 'Save Changes'}
             </button>
           </div>
@@ -518,34 +726,37 @@ export default function Pets() {
   );
 }
 
+type CategoryOption = {
+  id: number;
+  label: string;
+  description: string | null;
+  hourlyRate: number;
+};
+
+type PetFormFieldsProps = {
+  form: PetForm;
+  categories: CategoryOption[];
+  categoriesLoading: boolean;
+  onChange: (
+    event: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement
+    >,
+  ) => void;
+};
+
 function PetFormFields({
   form,
   categories,
   categoriesLoading,
   onChange,
-}: {
-  form: PetForm;
-  categories: {
-    id: number;
-    label: string;
-    description: string | null;
-    hourlyRate: number;
-  }[];
-  categoriesLoading: boolean;
-  onChange: (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement
-    >
-  ) => void;
-}) {
+}: PetFormFieldsProps) {
   const selectedCategory = categories.find(
     (category) =>
-      String(category.id) === form.categoryId
+      String(category.id) === form.categoryId,
   );
 
   return (
     <>
-      {/* Name */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Name
@@ -556,12 +767,11 @@ function PetFormFields({
           value={form.name}
           onChange={onChange}
           required
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           placeholder="e.g. Coco"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
         />
       </div>
 
-      {/* Category */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Category
@@ -577,7 +787,7 @@ function PetFormFields({
         >
           <option value="">
             {categoriesLoading
-              ? 'Loading categories...'
+              ? 'Loading categories…'
               : 'Select a category'}
           </option>
 
@@ -587,7 +797,8 @@ function PetFormFields({
               value={category.id}
             >
               {category.label} — ₱
-              {category.hourlyRate.toLocaleString()}/hr
+              {category.hourlyRate.toLocaleString()}
+              /hr
             </option>
           ))}
         </select>
@@ -600,7 +811,6 @@ function PetFormFields({
         )}
       </div>
 
-      {/* Breed */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Breed
@@ -610,12 +820,11 @@ function PetFormFields({
           name="breed"
           value={form.breed}
           onChange={onChange}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           placeholder="e.g. Greater Capybara"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
         />
       </div>
 
-      {/* Personality */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Personality
@@ -625,8 +834,8 @@ function PetFormFields({
           name="personality"
           value={form.personality}
           onChange={onChange}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           placeholder="Gentle, Friendly, Quiet"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
         />
 
         <p className="mt-1 text-xs text-gray-400">

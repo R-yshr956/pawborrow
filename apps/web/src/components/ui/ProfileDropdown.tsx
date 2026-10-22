@@ -69,7 +69,7 @@ export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps
             className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-froly-50 hover:text-froly-500 transition-colors"
           >
             <Bookmark size={16} />
-            <span>History</span>
+            <span>Bookings</span>
           </Link>
 
           <Link

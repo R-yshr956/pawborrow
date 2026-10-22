@@ -27,6 +27,10 @@ export * from "./lib/booking/bookingTime";
 export * from "./lib/booking/useCurrentTime";
 export * from "./lib/booking/useRescheduleBooking";
 export * from "./lib/booking/useTotalBooking";
+export {
+  useUpdateBookingOperations,
+  useUpdateRefund,
+} from "./lib/booking/useBookingOperations";
 
 export * from "./lib/useAdminUsers";
 export * from "./lib/pets/useAdminPets";
@@ -50,3 +54,10 @@ export * from "./lib/notifications/useMarkNotificationRead";
 
 export * from "./lib/dashboard/dashboard";
 export * from "./lib/dashboard/useDashboard";
+
+export * from "./lib/notifications/notification";
+
+export * from "./lib/cms";
+export * from "./lib/useCms";
+export * from "./lib/audit";
+export * from "./lib/useAuditLogs";

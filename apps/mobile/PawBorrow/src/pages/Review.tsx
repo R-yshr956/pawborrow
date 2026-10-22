@@ -1,26 +1,10 @@
 import { useState } from "react";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-import {
-  IonContent,
-  IonIcon,
-  IonPage,
-} from "@ionic/react";
-import {
-  chevronBackOutline,
-  star,
-  starOutline,
-} from "ionicons/icons";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { IonContent, IonPage } from "@ionic/react";
+import { ChevronLeft, Star } from "lucide-react";
 import { useCreateReview } from "@repo/api";
 
-import {
-  getPetImage,
-  handlePetImageError,
-} from "../utils/petImage";
-import "../style/Review.css";
+import { getPetImage, handlePetImageError } from "../utils/petImage";
 
 type ReviewLocationState = {
   booking?: {
@@ -41,32 +25,22 @@ const Review = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const locationState =
-    location.state as ReviewLocationState | null;
-
+  const locationState = location.state as ReviewLocationState | null;
   const booking = locationState?.booking;
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [validationError, setValidationError] =
-    useState("");
-  const [successMessage, setSuccessMessage] =
-    useState("");
+  const [validationError, setValidationError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const {
-    mutate: submitReview,
-    isPending,
-    error,
-  } = useCreateReview();
+  const { mutate: submitReview, isPending, error } = useCreateReview();
 
   function handleSubmit() {
     setValidationError("");
     setSuccessMessage("");
 
     if (rating === 0) {
-      setValidationError(
-        "Please select a rating before submitting.",
-      );
+      setValidationError("Please select a rating before submitting.");
       return;
     }
 
@@ -77,13 +51,8 @@ const Review = () => {
 
     const numericBookingId = Number(bookingId);
 
-    if (
-      !Number.isInteger(numericBookingId) ||
-      numericBookingId <= 0
-    ) {
-      setValidationError(
-        "The booking ID is invalid.",
-      );
+    if (!Number.isInteger(numericBookingId) || numericBookingId <= 0) {
+      setValidationError("The booking ID is invalid.");
       return;
     }
 
@@ -95,9 +64,7 @@ const Review = () => {
       },
       {
         onSuccess: () => {
-          setSuccessMessage(
-            "Your review was submitted successfully!",
-          );
+          setSuccessMessage("Your review was submitted successfully!");
 
           window.setTimeout(() => {
             navigate("/my-bookings", {
@@ -110,10 +77,7 @@ const Review = () => {
         },
 
         onError: (submitError) => {
-          console.error(
-            "Failed to submit review:",
-            submitError,
-          );
+          console.error("Failed to submit review:", submitError);
         },
       },
     );
@@ -131,93 +95,181 @@ const Review = () => {
     <IonPage>
       <IonContent
         fullscreen
-        className="mobile-review-content"
+        scrollY={true}
+        className="
+          [--background:#ffffff]
+          [--padding-bottom:calc(100px+env(safe-area-inset-bottom))]
+        "
       >
-        <main className="mobile-review">
-          <header className="mobile-review-header">
+        <main
+          className="
+            mx-auto box-border min-h-full w-full max-w-[480px]
+            px-[clamp(16px,4vw,24px)]
+            pb-[calc(100px+env(safe-area-inset-bottom))]
+            font-poppins
+          "
+        >
+          <header
+            className="
+              relative mb-6 mt-[clamp(16px,5vh,30px)]
+              flex items-center justify-center
+            "
+          >
             <button
               type="button"
-              className="mobile-review-back"
               aria-label="Go back"
               onClick={() => navigate("/my-bookings")}
               disabled={isPending}
+              className="
+                absolute left-0 flex h-9 w-9
+                items-center justify-center
+                rounded-full border-0 bg-froly-400
+                text-white shadow-sm
+                transition duration-200
+                active:scale-95 active:bg-froly-500
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-froly-400
+              "
             >
-              <IonIcon icon={chevronBackOutline} />
+              <ChevronLeft size={20} strokeWidth={2.5} />
             </button>
 
-            <h1>Leave a Review</h1>
+            <h1
+              className="
+                m-0 font-cherry text-3xl
+                leading-none text-froly-400
+              "
+            >
+              Leave a Review
+            </h1>
           </header>
 
-          <section className="mobile-review-card">
-            <p className="mobile-review-subtext">
+          <section
+            className="
+              rounded-[20px] border
+              border-alabaster-100 bg-white p-5
+              shadow-[0_8px_24px_rgba(22,34,51,0.08)]
+            "
+          >
+            <p
+              className="
+                mb-[18px] mt-0 text-center
+                text-sm leading-6 text-alabaster-600
+              "
+            >
               Tell us about your experience with{" "}
-              <strong>
+              <strong className="font-semibold text-alabaster-900">
                 {booking?.pet?.name ?? "this pet"}
               </strong>
               .
             </p>
 
             {booking?.pet && (
-              <div className="mobile-review-pet">
+              <div
+                className="
+                  mb-6 flex items-center gap-3.5
+                  rounded-[14px] bg-buttermilk-50 p-3
+                "
+              >
                 <img
-                  src={getPetImage(
-                    booking.pet.image_url,
-                  )}
+                  src={getPetImage(booking.pet.image_url)}
                   alt={booking.pet.name}
                   onError={handlePetImageError}
+                  className="
+                    h-16 w-16 shrink-0 rounded-xl
+                    bg-white object-cover
+                  "
                 />
 
-                <div>
-                  <h2>{booking.pet.name}</h2>
+                <div className="min-w-0 flex-1">
+                  <h2
+                    className="
+                      mb-1 mt-0 truncate
+                      text-base font-bold text-alabaster-950
+                    "
+                  >
+                    {booking.pet.name}
+                  </h2>
 
-                  <p>
-                    {booking.pet.breed ??
-                      "Breed not specified"}
+                  <p
+                    className="
+                      m-0 truncate text-xs text-alabaster-600
+                    "
+                  >
+                    {booking.pet.breed ?? "Breed not specified"}
                   </p>
                 </div>
               </div>
             )}
 
             <fieldset
-              className="mobile-review-rating"
               disabled={isPending}
+              className="
+                mb-[22px] border-0 p-0 text-center
+              "
             >
-              <legend>Your rating</legend>
+              <legend
+                className="
+                  mb-2.5 w-full
+                  text-sm font-bold text-alabaster-950
+                "
+              >
+                Your rating
+              </legend>
 
               <div
-                className="mobile-review-stars"
+                className="
+                  flex items-center justify-center gap-1
+                "
                 aria-label="Select a rating"
               >
-                {[1, 2, 3, 4, 5].map(
-                  (starValue) => (
+                {[1, 2, 3, 4, 5].map((starValue) => {
+                  const isSelected = starValue <= rating;
+
+                  return (
                     <button
                       key={starValue}
                       type="button"
-                      className="mobile-review-star"
+                      aria-label={`Rate ${starValue} star${
+                        starValue > 1 ? "s" : ""
+                      }`}
+                      aria-pressed={rating === starValue}
                       onClick={() => {
                         setRating(starValue);
                         setValidationError("");
                       }}
-                      aria-label={`Rate ${starValue} star${
-                        starValue > 1 ? "s" : ""
-                      }`}
-                      aria-pressed={
-                        rating === starValue
-                      }
+                      className="
+                        flex items-center justify-center
+                        rounded-lg border-0 bg-transparent p-1
+                        text-buttermilk-500
+                        transition duration-150
+                        hover:scale-110
+                        active:scale-95
+                        disabled:cursor-not-allowed
+                        disabled:opacity-60
+                        focus-visible:outline-2
+                        focus-visible:outline-offset-1
+                        focus-visible:outline-buttermilk-400
+                      "
                     >
-                      <IonIcon
-                        icon={
-                          starValue <= rating
-                            ? star
-                            : starOutline
-                        }
+                      <Star
+                        size={36}
+                        strokeWidth={1.8}
+                        fill={isSelected ? "currentColor" : "none"}
                       />
                     </button>
-                  ),
-                )}
+                  );
+                })}
               </div>
 
-              <p className="mobile-review-rating-label">
+              <p
+                className="
+                  mb-0 mt-2 text-xs text-alabaster-400
+                "
+              >
                 {rating === 0
                   ? "Tap a star to rate"
                   : `${rating} out of 5 stars`}
@@ -225,31 +277,53 @@ const Review = () => {
             </fieldset>
 
             <label
-              className="mobile-review-label"
               htmlFor="mobile-review-comment"
+              className="
+                mb-2 block text-[13px]
+                font-bold text-alabaster-950
+              "
             >
               Your review
             </label>
 
             <textarea
               id="mobile-review-comment"
-              className="mobile-review-textarea"
               value={comment}
-              onChange={(event) =>
-                setComment(event.target.value)
-              }
+              onChange={(event) => setComment(event.target.value)}
               placeholder="How was your experience?"
               maxLength={1000}
               disabled={isPending}
+              className="
+                min-h-[130px] w-full resize-y
+                box-border rounded-[13px]
+                border border-alabaster-300 bg-white
+                p-[13px] font-poppins text-sm
+                text-alabaster-950 outline-none
+                placeholder:text-alabaster-400
+                transition duration-200
+                focus:border-froly-400
+                focus:ring-4 focus:ring-froly-100
+                disabled:cursor-not-allowed
+                disabled:bg-alabaster-50
+                disabled:opacity-60
+              "
             />
 
-            <p className="mobile-review-character-count">
+            <p
+              className="
+                mx-0 mb-0 mt-1.5
+                text-right text-[11px] text-alabaster-400
+              "
+            >
               {comment.length}/1000
             </p>
 
             {displayedError && (
               <p
-                className="mobile-review-error"
+                className="
+                  mb-0 mt-3.5 text-center
+                  text-[13px] leading-5 text-froly-700
+                "
                 role="alert"
               >
                 {displayedError}
@@ -258,7 +332,10 @@ const Review = () => {
 
             {successMessage && (
               <p
-                className="mobile-review-success"
+                className="
+                  mb-0 mt-3.5 text-center
+                  text-[13px] leading-5 text-[#16834a]
+                "
                 role="status"
               >
                 {successMessage}
@@ -267,17 +344,25 @@ const Review = () => {
 
             <button
               type="button"
-              className="mobile-review-submit"
               onClick={handleSubmit}
-              disabled={
-                rating === 0 ||
-                isPending ||
-                Boolean(successMessage)
-              }
+              disabled={rating === 0 || isPending || Boolean(successMessage)}
+              className="
+                mt-[18px] min-h-12 w-full
+                rounded-[13px] border-0
+                bg-froly-400 px-[18px] py-[13px]
+                text-sm font-bold text-white
+                shadow-[0_6px_16px_rgba(245,120,123,0.25)]
+                transition duration-200
+                hover:bg-froly-500
+                active:scale-[0.98]
+                disabled:cursor-not-allowed
+                disabled:opacity-55
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-froly-400
+              "
             >
-              {isPending
-                ? "Submitting..."
-                : "Submit Review"}
+              {isPending ? "Submitting..." : "Submit Review"}
             </button>
           </section>
         </main>

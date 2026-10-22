@@ -19,18 +19,18 @@ export default function BookingModal() {
             </button>
 
             <div className="px-7 pb-2 pt-8 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#f0f5ed]">
-                <ShieldCheck size={30} className="text-[#708464]" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-tuft-bush-100">
+                <ShieldCheck size={30} className="text-rust-700" />
               </div>
             </div>
 
             <div className="px-8 pb-8 pt-4 text-center">
               <h2 className="font-serif text-[25px] font-medium text-[#2f2f2f]">
-                Minimum booking duration
+                Maximum booking duration
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-gray-500">
-                All PawBorrow rentals have a minimum booking duration of{" "}
+                All PawBorrow rentals have a maximum booking duration of{" "}
                 <strong className="font-semibold text-[#4d6044]">1 hour</strong>
                 .
               </p>
@@ -42,7 +42,7 @@ export default function BookingModal() {
 
                 <p className="mt-2 text-[13px] leading-6 text-gray-500">
                   To help ensure the safety and well-being of our pets,
-                  PawBorrow requires a minimum booking duration of 1 hour.
+                  PawBorrow requires a maximum booking duration of 1 hour.
                 </p>
 
                 <p className="mt-2 text-[13px] leading-6 text-gray-500">
@@ -62,11 +62,11 @@ export default function BookingModal() {
               <div className="mt-4 flex gap-3 rounded-2xl border border-[#e2e8dc] bg-white p-4 text-left">
                 <ShieldCheck
                   size={20}
-                  className="mt-0.5 shrink-0 text-[#879b7b]"
+                  className="mt-0.5 shrink-0 text-rust-700"
                 />
 
                 <p className="text-xs leading-5 text-gray-500">
-                  By continuing, you acknowledge that bookings require a minimum
+                  By continuing, you acknowledge that bookings require a maximum
                   duration of 1 hour.
                 </p>
               </div>
@@ -74,7 +74,7 @@ export default function BookingModal() {
               <button
                 type="button"
                 onClick={() => setShowBookingNotice(false)}
-                className="mt-6 h-12 w-full rounded-xl bg-[#879b7b] text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#748a68]"
+                className="mt-6 h-12 w-full rounded-xl bg-froly-400 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-froly-500"
               >
                 I Understand
               </button>

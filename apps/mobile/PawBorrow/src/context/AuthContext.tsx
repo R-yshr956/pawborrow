@@ -1,455 +1,466 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-
 import { supabase } from "@repo/api";
 
-// ========================================
-// Authentication User
-// ========================================
+type SupabaseSession = Awaited<
+  ReturnType<typeof supabase.auth.getSession>
+>["data"]["session"];
 
-type AuthUser = {
+type SupabaseUser = NonNullable<SupabaseSession>["user"];
+
+type UserProfileRecord = Record<string, unknown>;
+
+export type AuthUser = {
   id: string;
-  email?: string | null;
-  created_at: string;
-};
-
-// ========================================
-// Session
-// ========================================
-
-type Session = {
-  user: AuthUser;
-};
-
-// ========================================
-// User Profile
-// ========================================
-
-export interface UserProfile {
-  id: string;
-
   email: string;
+  displayName: string | null;
+  fullName: string | null;
+  phoneNumber: string | null;
+  accountCreated: string | null;
+  avatarUrl: string | null;
+};
 
-  displayName: string;
+type SignUpDetails = {
+  displayName?: string;
+  fullName?: string;
+  phoneNumber?: string;
+};
 
-  fullName: string;
+type AuthContextValue = {
+  user: AuthUser | null;
+  session: SupabaseSession;
 
-  firstName: string;
-
-  lastName: string;
-
-  phoneNumber: string;
-
-  accountCreated: string;
-
-  avatarUrl?: string;
-}
-
-// ========================================
-// Auth Context
-// ========================================
-
-interface AuthContextValue {
-  isLoggedIn: boolean;
-
+  isLoading: boolean;
   loading: boolean;
 
-  user: UserProfile | null;
+  isAuthenticated: boolean;
+  isLoggedIn: boolean;
 
-  session: Session | null;
+  login: (email: string, password: string) => Promise<void>;
 
-  login: (
+  signIn: (email: string, password: string) => Promise<void>;
+
+  signUp: (
     email: string,
     password: string,
+    details?: SignUpDetails,
   ) => Promise<void>;
 
   logout: () => Promise<void>;
-}
 
-const AuthContext =
-  createContext<AuthContextValue | undefined>(
-    undefined,
-  );
+  refreshUser: () => Promise<void>;
+};
 
-// ========================================
-// Load User Profile
-// ========================================
-//
-// Gets the authenticated user's profile
-// from public.user_profiles.
-//
-// Relationship:
-//
-// auth.users.id
-//      ↓
-// user_profiles.id
-//
-// ========================================
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-async function loadUserProfile(
-  authUser: AuthUser,
-): Promise<UserProfile> {
-  const {
-    data,
-    error,
-  } = await supabase
-    .from("user_profiles")
-    .select(`
-      id,
-      first_name,
-      last_name,
-      email,
-      phone,
-      avatar_url,
-      created_at
-    `)
-    .eq("id", authUser.id)
-    .maybeSingle();
+type AuthProviderProps = {
+  children: ReactNode;
+};
 
-  if (error) {
-    console.error(
-      "Failed to load user profile:",
-      error,
-    );
+function getString(
+  record: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  const value = record?.[key];
+
+  if (typeof value !== "string") {
+    return null;
   }
 
-  // ========================================
-  // Basic User Information
-  // ========================================
+  const trimmedValue = value.trim();
 
-  const firstName =
-    data?.first_name ?? "";
+  return trimmedValue || null;
+}
 
-  const lastName =
-    data?.last_name ?? "";
+function getFirstAvailableString(
+  record: Record<string, unknown> | null | undefined,
+  keys: string[],
+): string | null {
+  for (const key of keys) {
+    const value = getString(record, key);
 
-  // ========================================
-  // Full Name
-  // ========================================
+    if (value) {
+      return value;
+    }
+  }
 
-  const fullName =
-    [firstName, lastName]
-      .filter(Boolean)
-      .join(" ") ||
-    authUser.email ||
-    "Account";
+  return null;
+}
 
-  // ========================================
-  // Account Created
-  // ========================================
+function createNameFromParts(
+  firstName: string | null,
+  lastName: string | null,
+): string | null {
+  const name = [firstName, lastName].filter(Boolean).join(" ").trim();
 
-  const createdAt =
-    data?.created_at ??
-    authUser.created_at;
+  return name || null;
+}
 
-  // ========================================
-  // Return Profile
-  // ========================================
+function createBaseAuthUser(authUser: SupabaseUser): AuthUser {
+  const metadata = authUser.user_metadata as
+    | Record<string, unknown>
+    | undefined;
+
+  const fullName = getFirstAvailableString(metadata, ["full_name", "name"]);
+
+  const displayName = getFirstAvailableString(metadata, [
+    "display_name",
+    "preferred_username",
+    "user_name",
+    "name",
+    "full_name",
+  ]);
+
+  const phoneNumber = getFirstAvailableString(metadata, [
+    "phone_number",
+    "phone",
+  ]);
+
+  const avatarUrl = getFirstAvailableString(metadata, [
+    "avatar_url",
+    "picture",
+    "photo_url",
+    "photoURL",
+  ]);
 
   return {
     id: authUser.id,
-
-    email:
-      data?.email ??
-      authUser.email ??
-      "",
-
-    displayName:
-      firstName ||
-      fullName,
-
+    email: authUser.email?.trim() || "",
+    displayName,
     fullName,
-
-    firstName,
-
-    lastName,
-
-    phoneNumber:
-      data?.phone ?? "",
-
-    avatarUrl:
-      data?.avatar_url ??
-      undefined,
-
-    accountCreated: createdAt
-      ? new Date(
-          createdAt,
-        ).toLocaleDateString(
-          "en-US",
-          {
-            month: "long",
-            year: "numeric",
-          },
-        )
-      : "",
+    phoneNumber: authUser.phone?.trim() || phoneNumber,
+    accountCreated: authUser.created_at || null,
+    avatarUrl,
   };
 }
 
-// ========================================
-// Auth Provider
-// ========================================
+async function getProfileRecord(
+  userId: string,
+): Promise<UserProfileRecord | null> {
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
 
-export const AuthProvider = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  const [session, setSession] =
-    useState<Session | null>(null);
+  if (error) {
+    console.warn("Unable to load user profile:", error.message);
 
-  const [user, setUser] =
-    useState<UserProfile | null>(null);
+    return null;
+  }
 
-  const [loading, setLoading] =
-    useState(true);
+  return data as UserProfileRecord | null;
+}
 
-  // ========================================
-  // Apply Session
-  // ========================================
+async function createAuthUser(authUser: SupabaseUser): Promise<AuthUser> {
+  const baseUser = createBaseAuthUser(authUser);
 
-  useEffect(() => {
-    let active = true;
+  const profile = await getProfileRecord(authUser.id);
 
-    async function applySession(
-      nextSession: Session | null,
-    ) {
-      if (!active) {
-        return;
-      }
+  if (!profile) {
+    return baseUser;
+  }
 
-      // Store session
-      setSession(nextSession);
+  const firstName = getFirstAvailableString(profile, [
+    "first_name",
+    "firstname",
+  ]);
 
-      // ======================================
-      // No Session
-      // ======================================
+  const lastName = getFirstAvailableString(profile, ["last_name", "lastname"]);
 
-      if (!nextSession?.user) {
-        setUser(null);
-        setLoading(false);
+  const profileFullName =
+    getFirstAvailableString(profile, ["full_name", "name"]) ||
+    createNameFromParts(firstName, lastName);
 
-        return;
-      }
+  const profileDisplayName = getFirstAvailableString(profile, [
+    "display_name",
+    "username",
+  ]);
 
-      // ======================================
-      // Load Profile
-      // ======================================
+  const profilePhone = getFirstAvailableString(profile, [
+    "phone_number",
+    "contact_number",
+    "phone",
+  ]);
 
-      try {
-        const profile =
-          await loadUserProfile(
-            nextSession.user,
-          );
+  const profileAvatar = getFirstAvailableString(profile, [
+    "avatar_url",
+    "profile_image_url",
+    "image_url",
+    "photo_url",
+  ]);
 
-        if (active) {
-          setUser(profile);
-        }
-      } catch (error) {
-        console.error(
-          "Failed to apply user profile:",
-          error,
-        );
+  const profileCreatedAt = getFirstAvailableString(profile, [
+    "created_at",
+    "account_created",
+  ]);
 
-        if (active) {
+  const profileEmail = getFirstAvailableString(profile, ["email"]);
+
+  return {
+    id: baseUser.id,
+
+    email: profileEmail || baseUser.email,
+
+    displayName:
+      profileDisplayName ||
+      profileFullName ||
+      baseUser.displayName ||
+      baseUser.fullName,
+
+    fullName: profileFullName || baseUser.fullName,
+
+    phoneNumber: profilePhone || baseUser.phoneNumber,
+
+    accountCreated: profileCreatedAt || baseUser.accountCreated,
+
+    avatarUrl: profileAvatar || baseUser.avatarUrl,
+  };
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [session, setSession] = useState<SupabaseSession>(null);
+
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const mountedRef = useRef(true);
+
+  const latestUserRequestRef = useRef(0);
+
+  const loadAuthenticatedUser = useCallback(
+    async (authUser: SupabaseUser | null) => {
+      const requestId = latestUserRequestRef.current + 1;
+
+      latestUserRequestRef.current = requestId;
+
+      if (!authUser) {
+        if (mountedRef.current) {
           setUser(null);
         }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+
+        return;
       }
-    }
 
-    // ========================================
-    // Initialize Authentication
-    // ========================================
+      const baseUser = createBaseAuthUser(authUser);
 
-    async function initializeAuth() {
-      setLoading(true);
+      if (mountedRef.current && requestId === latestUserRequestRef.current) {
+        setUser(baseUser);
+      }
 
       try {
-        const {
-          data,
-          error,
-        } =
-          await supabase.auth.getSession();
+        const completeUser = await createAuthUser(authUser);
+
+        if (mountedRef.current && requestId === latestUserRequestRef.current) {
+          setUser(completeUser);
+        }
+      } catch (error) {
+        console.error("Failed to create authenticated user:", error);
+
+        if (mountedRef.current && requestId === latestUserRequestRef.current) {
+          setUser(baseUser);
+        }
+      }
+    },
+    [],
+  );
+
+  const refreshUser = useCallback(async () => {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+      throw error;
+    }
+
+    await loadAuthenticatedUser(data.user);
+  }, [loadAuthenticatedUser]);
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (!normalizedEmail) {
+        throw new Error("Email is required.");
+      }
+
+      if (!password) {
+        throw new Error("Password is required.");
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setSession(data.session);
+
+      await loadAuthenticatedUser(data.user);
+    },
+    [loadAuthenticatedUser],
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string, details: SignUpDetails = {}) => {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (!normalizedEmail) {
+        throw new Error("Email is required.");
+      }
+
+      if (!password) {
+        throw new Error("Password is required.");
+      }
+
+      const displayName = details.displayName?.trim() || null;
+
+      const fullName = details.fullName?.trim() || null;
+
+      const phoneNumber = details.phoneNumber?.trim() || null;
+
+      const { data, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+
+        options: {
+          data: {
+            display_name: displayName,
+            full_name: fullName,
+            phone_number: phoneNumber,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setSession(data.session);
+
+      await loadAuthenticatedUser(data.user);
+    },
+    [loadAuthenticatedUser],
+  );
+
+  const logout = useCallback(async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+
+    latestUserRequestRef.current += 1;
+
+    setSession(null);
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    async function initializeAuth() {
+      setIsLoading(true);
+
+      try {
+        const { data, error } = await supabase.auth.getSession();
 
         if (error) {
           throw error;
         }
 
-        await applySession(
-          data.session,
-        );
-      } catch (error) {
-        console.error(
-          "Failed to restore Supabase session:",
-          error,
-        );
+        if (!mountedRef.current) {
+          return;
+        }
 
-        if (active) {
+        setSession(data.session);
+
+        await loadAuthenticatedUser(data.session?.user ?? null);
+      } catch (error) {
+        console.error("Failed to initialize authentication:", error);
+
+        if (mountedRef.current) {
           setSession(null);
           setUser(null);
-          setLoading(false);
+        }
+      } finally {
+        if (mountedRef.current) {
+          setIsLoading(false);
         }
       }
     }
 
-    initializeAuth();
-
-    // ========================================
-    // Listen For Authentication Changes
-    // ========================================
+    void initializeAuth();
 
     const {
-      data: {
-        subscription,
-      },
-    } =
-      supabase.auth.onAuthStateChange(
-        (_event, nextSession) => {
-          if (!active) {
-            return;
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      setSession(nextSession);
+
+      window.setTimeout(() => {
+        if (!mountedRef.current) {
+          return;
+        }
+
+        void loadAuthenticatedUser(nextSession?.user ?? null).finally(() => {
+          if (mountedRef.current) {
+            setIsLoading(false);
           }
-
-          setLoading(true);
-
-          /*
-           * Run profile loading after the
-           * auth callback finishes.
-           *
-           * This avoids making another Supabase
-           * request directly inside the callback.
-           */
-          window.setTimeout(() => {
-            applySession(
-              nextSession,
-            );
-          }, 0);
-        },
-      );
-
-    // ========================================
-    // Cleanup
-    // ========================================
+        });
+      }, 0);
+    });
 
     return () => {
-      active = false;
+      mountedRef.current = false;
 
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadAuthenticatedUser]);
 
-  // ========================================
-  // Login
-  // ========================================
+  const value = useMemo<AuthContextValue>(() => {
+    const authenticated = Boolean(session?.user);
 
-  async function login(
-    email: string,
-    password: string,
-  ) {
-    const normalizedEmail =
-      email.trim().toLowerCase();
+    return {
+      user,
+      session,
+      isLoading,
+      loading: isLoading,
+      isAuthenticated: authenticated,
+      isLoggedIn: authenticated,
+      login,
+      signIn: login,
+      signUp,
+      logout,
+      refreshUser,
+    };
+  }, [user, session, isLoading, login, signUp, logout, refreshUser]);
 
-    if (!normalizedEmail) {
-      throw new Error(
-        "Please enter your email address.",
-      );
-    }
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-    if (!password) {
-      throw new Error(
-        "Please enter your password.",
-      );
-    }
-
-    const {
-      error,
-    } =
-      await supabase.auth.signInWithPassword(
-        {
-          email: normalizedEmail,
-          password,
-        },
-      );
-
-    if (error) {
-      throw error;
-    }
-
-    /*
-     * We don't manually set user here.
-     *
-     * Supabase will trigger onAuthStateChange(),
-     * which will load the user_profiles row.
-     */
-  }
-
-  // ========================================
-  // Logout
-  // ========================================
-
-  async function logout() {
-    const {
-      error,
-    } =
-      await supabase.auth.signOut();
-
-    if (error) {
-      throw error;
-    }
-
-    setSession(null);
-
-    setUser(null);
-
-    setLoading(false);
-  }
-
-  // ========================================
-  // Provider
-  // ========================================
-
-  return (
-    <AuthContext.Provider
-      value={{
-        isLoggedIn:
-          Boolean(session),
-
-        loading,
-
-        user,
-
-        session,
-
-        login,
-
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// ========================================
-// useAuth
-// ========================================
-
-export const useAuth = () => {
-  const context =
-    useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used within an AuthProvider",
-    );
+    throw new Error("useAuth must be used inside AuthProvider.");
   }
 
   return context;
-};
+}
+
+export default AuthProvider;
