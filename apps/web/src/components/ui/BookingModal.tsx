@@ -26,11 +26,11 @@ export default function BookingModal() {
 
             <div className="px-8 pb-8 pt-4 text-center">
               <h2 className="font-serif text-[25px] font-medium text-[#2f2f2f]">
-                Minimum booking duration
+                Maximum booking duration
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-gray-500">
-                All PawBorrow rentals have a minimum booking duration of{" "}
+                All PawBorrow rentals have a maximum booking duration of{" "}
                 <strong className="font-semibold text-[#4d6044]">1 hour</strong>
                 .
               </p>
@@ -42,7 +42,7 @@ export default function BookingModal() {
 
                 <p className="mt-2 text-[13px] leading-6 text-gray-500">
                   To help ensure the safety and well-being of our pets,
-                  PawBorrow requires a minimum booking duration of 1 hour.
+                  PawBorrow requires a maximum booking duration of 1 hour.
                 </p>
 
                 <p className="mt-2 text-[13px] leading-6 text-gray-500">
@@ -66,7 +66,7 @@ export default function BookingModal() {
                 />
 
                 <p className="text-xs leading-5 text-gray-500">
-                  By continuing, you acknowledge that bookings require a minimum
+                  By continuing, you acknowledge that bookings require a maximum
                   duration of 1 hour.
                 </p>
               </div>

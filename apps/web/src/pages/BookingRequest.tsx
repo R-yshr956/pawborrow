@@ -386,7 +386,7 @@ export default function BookingRequest() {
             </div>
 
             <p className="mt-2 text-xs leading-5 text-gray-500">
-              Minimum booking duration is 1 hour. Additional time can be added
+              Maximum booking duration is 1 hour. Additional time can be added
               in 15-minute increments.
             </p>
           </div>
